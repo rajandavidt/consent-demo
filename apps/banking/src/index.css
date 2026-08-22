@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+
+/* Tailwind v4 detects content from the project root, which here is the APP directory — so classes
+   used only inside @finsecure/shared would never be generated and every shared component would
+   render unstyled. Symptom if removed: text and layout survive, borders and fills vanish. */
+@source '../../../packages/shared/src';
+
+/* The design system, in shadcn/ui's variable contract. Imported AFTER tailwindcss because it uses
+   `@theme inline` and `@layer base`, both of which need Tailwind's layers to exist first. */
+@import '../../../packages/shared/src/theme.css';
+
+/* Inter, with font-display: swap so text is never invisible while the font loads. */
+/* Akku's consent surfaces ship their own stylesheet and are unstyled without it. Imported at the
+   entry rather than in a page, because AskModal and DisclosureModal appear on whichever screen the
+   question belongs to — a per-page import would silently unstyle the first one someone forgets. */
+@import '@akku-work/consent-auth/styles.css';
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');

@@ -1,0 +1,23 @@
+# Dependencies — never committed. pnpm reinstalls these from pnpm-lock.yaml, and Vercel runs its own
+# install, so a committed node_modules is both dead weight and a source of drift.
+node_modules/
+
+# Build output
+dist/
+.vite/
+
+# Vite/Vercel local caches
+.vercel/
+*.tsbuildinfo
+
+# Local site keys and hosts — not committed.
+.env.local
+.env.*.local
+
+# Registry credentials. A repo-local .npmrc can hold an auth token; keeping it ignored means a stray
+# `git add .` cannot publish one to the remote.
+.npmrc
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
