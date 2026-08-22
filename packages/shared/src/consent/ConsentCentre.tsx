@@ -75,8 +75,15 @@ function ConsentCentreLive({ source }: { source: string }) {
           undecided ones. Two counts of the same thing is a bug waiting to happen; the one that can
           distinguish "declined" from "not yet asked" is the one to keep. */}
 
-      <div className="grid gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      {/* FULL WIDTH, and the reference cards moved below rather than beside.
+          They used to sit in a third column, which stacked three squeezes on one another: the shell
+          caps content at max-w-6xl, this grid gave the panel two thirds of that, and the panel then
+          splits off its own 268px summary rail — leaving the decision cards around 460px. At that
+          width "Marketing emails" wrapped to two lines, "Not now" broke mid-button, and the
+          re-confirm notice was crushed against the purpose name. The cards carry a name, a reason, an
+          element, two actions and an expiry window; they need the room. */}
+      <div>
+        <div>
           {/* The SDK's embeddable panel. `elements` comes from the PUBLISHED POLICY, not from a
               map in this app: the policy already carries every element's label, and restating them
               here is how an app ends up showing "Phone number" for something the policy renamed.
@@ -86,7 +93,9 @@ function ConsentCentreLive({ source }: { source: string }) {
           <ConsentPreferences source={source} elements={policyElements()} />
         </div>
 
-        <aside className="space-y-4">
+        {/* Reference material, so it reads AFTER the decisions rather than competing with them for
+            horizontal space. Three across on wide screens, stacked on narrow. */}
+        <aside className="mt-5 grid gap-4 md:grid-cols-3">
           <div className="rounded-xl border p-5">
             <h3 className="flex items-center gap-2 text-sm font-semibold">
               <TriangleAlert className="text-muted-foreground size-4" strokeWidth={1.75} aria-hidden />

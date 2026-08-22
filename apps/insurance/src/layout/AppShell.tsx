@@ -59,16 +59,25 @@ export function AppShell({ children }: { children: ReactNode }) {
               // `relative` is load-bearing: the active accent bar below is absolutely positioned and
               // would otherwise anchor to the nearest positioned ancestor, landing at the edge of the
               // sidebar instead of beside its own row.
-              'focus-ring relative flex min-h-11 items-center gap-3 rounded-control px-3 text-sm transition-colors ' +
+              //
+              // --duration-instant on the hover tint, deliberately the fast end of the scale. A
+              // sidebar is scanned WITH the pointer: you sweep down the items looking for the one you
+              // want, and at the 200ms default the trail of items still fading out behind the cursor
+              // is more visible than the item currently under it.
+              'focus-ring relative flex min-h-11 items-center gap-3 rounded-control px-3 text-sm transition-colors duration-[var(--duration-instant)] ' +
               (active
                 ? 'bg-white/[0.09] font-semibold text-white shadow-[inset_0_1px_0_0_rgb(255_255_255/0.06)]'
                 : 'font-medium text-slate-400 hover:bg-white/[0.05] hover:text-slate-100')
             }
           >
             {/* The accent bar is what makes the selected item read as selected at a glance,
-                without relying on the background tint alone. */}
+                without relying on the background tint alone. It grows out of the left edge
+                rather than blinking on: React mounts and unmounts this span with the route, so there
+                is no state for a transition to interpolate and an entrance keyframe is the only tool
+                that works. `slide-in-from-left-2` reads as the marker sliding out from under the
+                panel edge, which is where a "you are here" marker should come from. */}
             {active && (
-              <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-brand-500" />
+              <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-brand-500 animate-in slide-in-from-left-2 fade-in duration-[var(--duration-base)] ease-[var(--ease-out-quart)]" />
             )}
             <Icon
               className={'h-[18px] w-[18px] shrink-0 ' + (active ? 'text-brand-300' : '')}
@@ -114,7 +123,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               resetAll();
               window.location.href = '/login';
             }}
-            className="focus-ring flex min-h-11 w-full items-center gap-3 rounded-control px-3 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+            className="focus-ring press flex min-h-11 w-full items-center gap-3 rounded-control px-3 text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white"
           >
             <RotateCcw className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden />
             Reset demo data
@@ -124,20 +133,31 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {drawerOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
+          {/* The scrim fades and the panel slides, and they take the SAME duration on purpose: a
+              scrim that finishes darkening before the panel arrives reads as two separate things
+              happening, which is the single most common tell of a hand-rolled drawer.
+              --duration-slow because this is the largest entrance in either app. */}
           <button
             type="button"
             aria-label="Close navigation"
             onClick={() => setDrawerOpen(false)}
-            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-[var(--duration-slow)] ease-[var(--ease-out-quart)]"
           />
-          <div className="absolute inset-y-0 left-0 flex w-64 flex-col bg-gradient-to-b from-shell-900 to-shell-950 shadow-overlay">
+          {/* `slide-in-from-left` (a full panel width) rather than the `-left-2` used on the nav
+              accent bar: this element IS the thing that came from off-screen, so it should travel
+              the whole distance rather than hint at it.
+              NO EXIT ANIMATION, and that is a real gap rather than a choice — `drawerOpen &&` unmounts
+              the panel synchronously, so there is nothing left on screen to animate out. Fixing it
+              properly means Radix's Dialog or a presence wrapper holding the node through its exit,
+              which is a structural change to the navigation and outside a presentation pass. */}
+          <div className="absolute inset-y-0 left-0 flex w-64 flex-col bg-gradient-to-b from-shell-900 to-shell-950 shadow-overlay animate-in slide-in-from-left duration-[var(--duration-slow)] ease-[var(--ease-out-quart)]">
             <div className="flex items-center justify-between border-b border-white/[0.07] pr-2">
               <div className="flex-1">{brand}</div>
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Close navigation"
-                className="focus-ring grid h-11 w-11 place-items-center rounded-control text-slate-300 hover:text-white"
+                className="focus-ring press grid h-11 w-11 place-items-center rounded-control text-slate-300 hover:bg-white/5 hover:text-white"
               >
                 <X className="h-5 w-5" aria-hidden />
               </button>
@@ -154,7 +174,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               type="button"
               onClick={() => setDrawerOpen(true)}
               aria-label="Open navigation"
-              className="focus-ring grid h-11 w-11 place-items-center rounded-control text-slate-600 hover:bg-surface-sunken lg:hidden"
+              className="focus-ring press grid h-11 w-11 place-items-center rounded-control text-slate-600 hover:bg-surface-sunken lg:hidden"
             >
               <Menu className="h-5 w-5" aria-hidden />
             </button>
@@ -184,7 +204,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={signOut}
                 aria-label="Sign out"
-                className="focus-ring grid h-11 w-11 place-items-center rounded-control text-slate-500 hover:bg-surface-sunken hover:text-status-rejected"
+                className="focus-ring press grid h-11 w-11 place-items-center rounded-control text-slate-500 hover:bg-surface-sunken hover:text-status-rejected"
               >
                 <LogOut className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden />
               </button>
@@ -192,7 +212,27 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+        {/* FULL WIDTH — no max-width container.
+            The densest screens here are wide by nature: a consent purpose card carries a name, a
+            reason, an element, two actions and an expiry window on one row, and the KYC table has a
+            status and an action per step. A 72rem cap forced those to wrap mid-button.
+            Reading measure is protected where it matters instead of globally: prose and form fields
+            keep their own narrower caps (a text input stretched to 1400px is unusable), so widening
+            the shell gives the data-dense screens room without turning body copy into a single long
+            line. */}
+        {/* ROUTE TRANSITION, and it is deliberately the smallest one available.
+            `key` on the pathname is what makes it work: React tears down the subtree and mounts a
+            fresh one on every navigation, which re-fires the `reveal` keyframe. Without the key the
+            same <main> node is reused and the animation runs exactly once, on first load.
+            `reveal` (3px, --duration-base) rather than `reveal-block` (6px, --duration-slow). This is
+            an app someone works inside, not a site they browse: they know they clicked Payments, so
+            the transition's only job is to stop the swap being a hard cut. A page that visibly slides
+            in on every click is charming twice and then it is the reason navigation feels slow —
+            especially here, where routes are instant and the animation is the ONLY latency.
+            It also cannot mask a load, because there is nothing to load. */}
+        <main key={location.pathname} className="reveal w-full px-4 py-6 sm:px-6 sm:py-8">
+          {children}
+        </main>
       </div>
     </div>
   );

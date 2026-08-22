@@ -11,7 +11,19 @@
 // well (Dialog, Table, Select, Checkbox) is re-exported raw rather than wrapped.
 import { createContext, useCallback, useContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
-import { Loader2 } from 'lucide-react';
+import {
+  Check,
+  CreditCard,
+  FileText,
+  Fingerprint,
+  Loader2,
+  Mail,
+  MapPin,
+  ShieldCheck,
+  Smartphone,
+  UserRound,
+  Users,
+} from 'lucide-react';
 import { toast as sonnerToast } from 'sonner';
 import { cn } from '../lib/utils.js';
 import { Button as ShadButton } from '../components/ui/button.js';
@@ -68,6 +80,14 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
   // `gap-0 p-0` because shadcn's Card ships its own padding and vertical gap, while this platform's
   // cards manage their own internal spacing — a header strip flush to the edges, then a padded body.
   // Without the reset every card gains a double inset.
+  //
+  // NO HOVER LIFT HERE, and no `interactive` prop to opt into one. A draft had both; the prop had no
+  // call site, because every `Card` in either app is a static panel — the one card in the product
+  // that is genuinely a click target is the account selector on /accounts, which is a bare <button>
+  // and takes `.lift` directly. A lift on a static panel is worse than the flatness: it promises an
+  // interaction that is not there, people click, nothing happens, and they stop trusting the real
+  // affordances on the page. If a clickable Card ever appears, pass `className="lift"` — that is
+  // what the class is for, and it needs no API.
   return <ShadCard className={cn('gap-0 overflow-hidden p-0', className)}>{children}</ShadCard>;
 }
 
@@ -172,8 +192,18 @@ export function Field({
         onChange={(e) => onChange(e.target.value)}
         className="h-11"
       />
+      {/* `reveal` on the error and not on the hint. The hint was there before you touched the field,
+          so animating it in on first render would draw the eye to text that is not news. The error
+          IS news — it is the reason the form did not submit — and it appears below the fold of the
+          user's attention, several fields above wherever they clicked Save. The fade plus 3px of
+          travel is what makes it findable.
+          `key={error}` so a SECOND, different error on the same field replays the animation. Without
+          it React reuses the node, the text swaps silently, and someone who fixed "PAN is required"
+          into a malformed PAN sees no acknowledgement that anything happened. */}
       {error ? (
-        <p className="text-destructive text-xs font-medium">{error}</p>
+        <p key={error} className="reveal text-destructive text-xs font-medium">
+          {error}
+        </p>
       ) : (
         hint && <p className="text-muted-foreground text-xs">{hint}</p>
       )}
@@ -223,7 +253,12 @@ export function SelectField({
           ))}
         </SelectContent>
       </Select>
-      {error && <p className="text-destructive text-xs font-medium">{error}</p>}
+      {/* Same treatment as Field — see the note there for why the key matters. */}
+      {error && (
+        <p key={error} className="reveal text-destructive text-xs font-medium">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -298,7 +333,13 @@ export function InfoBanner({
     // `block`, not shadcn's grid. Alert lays its children out as grid items, so inline content —
     // a <strong> next to a sentence — becomes one item per line instead of a paragraph. That produced
     // a banner reading "You have / 5 choices / to make here." down the page.
-    <Alert className={cn('block py-3', tones[tone])}>
+    // `reveal` — the short one, not `reveal-block`. Most banners here appear because something
+    // happened: a consent load failed, a value was rejected, an upload finished. The fade is what
+    // separates "this just became true" from "this was always on the page", which matters because the
+    // same component is also used for the standing demo-data notice on every onboarding step. 3px of
+    // travel and 200ms is the compromise: enough to register on the ones that are news, brief enough
+    // that the standing notice does not perform an entrance on every step you visit.
+    <Alert className={cn('reveal block py-3', tones[tone])}>
       <p className="text-sm leading-relaxed text-current">{children}</p>
     </Alert>
   );
@@ -312,6 +353,43 @@ export function InfoBanner({
  * Shows every step rather than "3 of 10": the point is that the customer can see what is still ahead
  * of them, which is what stops an onboarding flow feeling endless.
  */
+/**
+ * An icon per onboarding step.
+ *
+ * Chosen to describe the ARTEFACT being collected rather than the act of collecting it — a card for
+ * PAN, a fingerprint for Aadhaar-based KYC, a pin for address — because the artefact is what the
+ * visitor recognises. A `Record` keyed on the step type, so adding an eleventh step is a type error
+ * here rather than a missing icon at runtime.
+ */
+export const STEP_ICONS: Record<OnboardingStep, typeof UserRound> = {
+  account: UserRound,
+  mobile: Smartphone,
+  email: Mail,
+  pan: CreditCard,
+  kyc: Fingerprint,
+  personal: UserRound,
+  address: MapPin,
+  nominee: Users,
+  documents: FileText,
+  consent: ShieldCheck,
+};
+
+/**
+ * The onboarding progress, as a VERTICAL stepper.
+ *
+ * Was a horizontal row of pills, which wrapped to two ragged lines at ten steps and read as tags
+ * rather than a sequence — you could not tell at a glance how far through you were. Vertical gives
+ * each step a full row for its label, puts them in one unambiguous reading order, and uses the width
+ * the page now has instead of fighting it.
+ *
+ * Each step carries its own lucide icon rather than a number alone. The icon says WHAT the step is
+ * before the label is read (a fingerprint for KYC, a card for PAN), and the number stays for
+ * position. A tick replaces the icon once a step is verified, because at that point "which step is
+ * this" matters less than "this one is done".
+ *
+ * The connector is drawn per-item rather than as a single background line, so it stops at the last
+ * step instead of trailing into empty space.
+ */
 export function ProgressSteps({
   current,
   completed,
@@ -320,35 +398,79 @@ export function ProgressSteps({
   completed: OnboardingStep[];
 }) {
   return (
-    <ol className="flex flex-wrap gap-1.5">
+    <ol className="relative">
       {STEP_SEQUENCE.map((step, index) => {
         const isDone = completed.includes(step);
         const isCurrent = step === current;
+        const isLast = index === STEP_SEQUENCE.length - 1;
+        const Icon = STEP_ICONS[step];
+
         return (
-          <li
-            key={step}
-            className={cn(
-              'flex items-center gap-1.5 rounded-full py-1 pr-2.5 pl-1.5 text-xs font-medium transition-colors',
-              isCurrent
-                ? 'btn-primary-surface text-primary-foreground'
-                : isDone
-                  ? 'bg-status-verified-soft text-status-verified'
-                  : 'bg-muted text-muted-foreground',
+          <li key={step} className="relative flex gap-3 pb-1 last:pb-0">
+            {/* The connector. Tinted for a completed run so the finished part of the journey reads
+                as one continuous line rather than a series of dots. */}
+            {!isLast && (
+              <span
+                aria-hidden
+                className={cn(
+                  // --duration-slow, and it is the slowest thing in the stepper on purpose. The
+                  // connector tinting green is the "you have got this far" signal, and it should
+                  // still be arriving after the node above it has finished changing — that ordering
+                  // is what makes the progress read as travelling DOWN the list rather than as three
+                  // unrelated elements recolouring at once.
+                  'absolute top-9 left-[17px] h-[calc(100%-1.5rem)] w-px transition-colors duration-[var(--duration-slow)]',
+                  isDone ? 'bg-status-verified/30' : 'bg-border',
+                )}
+              />
             )}
-          >
+
             <span
               className={cn(
-                'num grid size-4 place-items-center rounded-full text-[10px] font-bold',
+                // `transition-all`, not `transition-colors`. The current step is marked by a 4px
+                // brand-tinted halo drawn with box-shadow — which `transition-colors` does not cover,
+                // so the halo popped into existence around a circle whose fill was still fading.
+                // `transition-all` here also picks up the border, which changes on every state.
+                'relative z-10 grid size-[35px] shrink-0 place-items-center rounded-full border transition-all',
                 isCurrent
-                  ? 'text-primary-foreground bg-white/25'
+                  ? 'border-brand-500 bg-brand-500 text-white shadow-[0_0_0_4px_var(--brand-100)]'
                   : isDone
-                    ? 'bg-status-verified text-white'
-                    : 'bg-card text-muted-foreground',
+                    ? 'border-status-verified/25 bg-status-verified-soft text-status-verified'
+                    : 'border-border bg-card text-muted-foreground',
               )}
             >
-              {isDone && !isCurrent ? '✓' : index + 1}
+              {isDone && !isCurrent ? (
+                // The tick is a REPLACEMENT, not a state change — React swaps one lucide component
+                // for another, so there is nothing for a transition to interpolate and the glyph just
+                // appears. An entrance keyframe is the only tool that works here, and this is the
+                // moment in the whole flow most worth marking: a step going from "in progress" to
+                // "done" is the only unambiguously good news the stepper ever delivers.
+                <Check
+                  className="size-4 animate-in zoom-in-50 duration-[var(--duration-base)] ease-[var(--ease-out-quart)]"
+                  strokeWidth={2.5}
+                  aria-hidden
+                />
+              ) : (
+                <Icon className="size-4" strokeWidth={1.9} aria-hidden />
+              )}
             </span>
-            {STEP_LABELS[step]}
+
+            <span className="flex min-w-0 flex-col justify-center py-1.5">
+              <span
+                className={cn(
+                  'truncate text-sm leading-tight transition-colors',
+                  isCurrent
+                    ? 'text-foreground font-semibold'
+                    : isDone
+                      ? 'text-foreground/80 font-medium'
+                      : 'text-muted-foreground',
+                )}
+              >
+                {STEP_LABELS[step]}
+              </span>
+              <span className="num text-2xs text-muted-foreground/70 leading-tight">
+                {isDone && !isCurrent ? 'Verified' : `Step ${index + 1}`}
+              </span>
+            </span>
           </li>
         );
       })}
