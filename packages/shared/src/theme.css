@@ -60,6 +60,53 @@
   --input: oklch(0.9 0.008 265);
   --ring: oklch(0.54 0.24 292);
 
+  /* Two more border weights than shadcn's single `--border`, because this UI stacks panels inside
+   * panels: a card on a sunken page, with a divided list inside it. One weight makes the inner
+   * divisions as loud as the card edge. `subtle` is for divisions WITHIN a surface, `strong` for a
+   * hover or focus edge that must read as interactive.
+   *
+   * These were used 68 times and defined nowhere — `border-border-subtle` only appeared to work
+   * because the base `* { @apply border-border }` supplied a fallback colour, so the intended subtler
+   * tone was never once rendered, and `border-border-strong` (the hover edge on the /accounts cards)
+   * was completely dead. Found by the motion pass walking the live CSSOM. */
+  --border-subtle: oklch(0.94 0.005 265);
+  --border-strong: oklch(0.85 0.01 265);
+
+  /* ------------------------------------------------------------------------------------------
+   * THE PRODUCT'S OWN TOKENS, restored.
+   *
+   * These predate the shadcn migration and the app CHROME is built on them — 447 class usages
+   * across both apps. Rewriting this file into shadcn's oklch contract dropped them, and a missing
+   * Tailwind token does not error: the utility is simply never generated, so `bg-gradient-to-b
+   * from-shell-900` produced no background at all. The sidebar rendered transparent over a white
+   * page and its `text-white` labels became invisible, as did "Make a payment" and every other
+   * white-on-brand control. Nothing failed a typecheck or a test, because neither can see a class
+   * that stopped existing.
+   *
+   * Kept ALONGSIDE the shadcn tokens rather than folded into them: `shell-*` is a navy chrome ramp
+   * with no shadcn equivalent, and the six KYC status colours already live here for the same reason.
+   * The values mirror the sidebar block below, which was authored for this exact chrome.
+   * --------------------------------------------------------------------------------------------- */
+
+  /* Navy chrome. The sidebar gradient — deliberately not the brand violet: a full-height panel in
+   * the primary colour makes every menu item compete with the page's actual call to action. */
+  --shell-900: oklch(0.22 0.02 264);
+  --shell-950: oklch(0.17 0.02 264);
+
+  /* Page surfaces. `surface` is the raised card plane, `surface-sunken` the page behind it. */
+  --surface: oklch(1 0 0);
+  --surface-sunken: oklch(0.975 0.004 265);
+
+  /* The brand ramp. 500 is the same violet as `--primary`, so a brand control and a shadcn
+   * primary control cannot drift apart. */
+  --brand-50: oklch(0.977 0.014 300);
+  --brand-100: oklch(0.946 0.033 297);
+  --brand-200: oklch(0.902 0.063 295);
+  --brand-300: oklch(0.827 0.109 294);
+  --brand-500: oklch(0.54 0.24 292);
+  --brand-600: oklch(0.487 0.217 292);
+  --brand-700: oklch(0.432 0.191 292);
+
   /* shadcn's sidebar block. Near-black with a blue cast: chrome should recede, and a full-height
    * panel in the primary colour makes every menu item compete with the page's actual CTA. */
   --sidebar: oklch(0.19 0.02 264);
@@ -98,6 +145,51 @@
   /* The gradient end for primary CTAs. A gradient everywhere is a 2021 dashboard; a gradient on the
    * one action per screen is emphasis. */
   --primary-grad-to: oklch(0.56 0.2 275);
+
+  /* ------------------------------------------------------------------------------------------
+   * MOTION. Four durations and three curves, and nothing is allowed to invent its own.
+   *
+   * Before this block every transition in the codebase was either the bare `transition` utility
+   * (150ms, Tailwind's default curve) or a one-off `duration-500`, so the sidebar, the buttons and
+   * the progress ring all moved at speeds nobody chose. That is what makes an interface feel
+   * assembled rather than designed: the individual timings are each defensible, the relationships
+   * between them are accidental.
+   *
+   * The scale is roughly geometric, because two durations one browser-frame apart are not two
+   * durations — they are one duration with rounding error. Each step is ~1.5x the last, which is
+   * about the smallest ratio a person actually reads as "faster" and "slower".
+   *
+   * WHICH ONE. Tie the duration to how far something travels, not to how important it is:
+   *   --duration-instant  a colour or opacity swap on something under the cursor RIGHT NOW. Hover
+   *                       tints, nav item backgrounds. Anything slower feels like lag, because the
+   *                       pointer has already arrived and the UI is still catching up.
+   *   --duration-fast     pressed states, focus rings, input borders — a couple of pixels of travel
+   *                       on an element the user is actively touching.
+   *   --duration-base     the default. A state change on something already on screen: a stepper node
+   *                       going from pending to current, a status badge recolouring, a card lifting.
+   *   --duration-slow     things that ENTER or LEAVE — the mobile drawer, a dialog, a revealed
+   *                       banner. Entrances get more time because the eye has to find the thing
+   *                       before it can read it.
+   *
+   * WHICH CURVE. `--ease-out-quart` for anything arriving or settling: almost all the movement
+   * happens in the first third, so the element reads as already-there while it is technically still
+   * animating. `--ease-standard` for a change of state in place — its ease-in is barely there, so
+   * the element does not appear to hesitate before it moves. `--ease-in-out-quad` only for symmetric
+   * two-way travel (a drawer that leaves the way it arrived); using it for an entrance is the
+   * classic mistake, because the slow start reads as the UI being slow to respond.
+   *
+   * EVERY duration here is neutralised under `prefers-reduced-motion: reduce` by the block at the
+   * bottom of this file. Adding a transition anywhere in the app is therefore safe by default — you
+   * would have to go out of your way to ship motion a vestibular-sensitive user cannot turn off.
+   * --------------------------------------------------------------------------------------------- */
+  --duration-instant: 90ms;
+  --duration-fast: 140ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-out-quad: cubic-bezier(0.45, 0, 0.55, 1);
 }
 
 .dark {
@@ -127,6 +219,50 @@
 }
 
 @theme inline {
+  /* The product's own tokens as utilities — `bg-surface-sunken`, `from-shell-900`, `text-brand-600`.
+   * Without these the classes exist in the markup and nowhere in the stylesheet. */
+  --color-shell-900: var(--shell-900);
+  --color-shell-950: var(--shell-950);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+
+  /* MOTION, wired into Tailwind. Only these two keys, and they are the two that matter most:
+   * Tailwind's bare `transition` / `transition-colors` utilities read them, so the ~40 places that
+   * already say `transition-colors` and nothing else land on this scale rather than Tailwind's stock
+   * 150ms — the whole app moves coherently without those call sites being touched.
+   *
+   * There is deliberately NO `--duration-*` or `--ease-*` namespace mapping here. `--ease-*` is a
+   * real Tailwind v4 namespace but mapping it means holding the same curve under two names, and
+   * `--duration-*` is not a namespace at all, so `duration-base` would generate nothing and fail
+   * SILENTLY — precisely the failure mode that shipped this app with an invisible sidebar. Both are
+   * therefore consumed as arbitrary values, `duration-[var(--duration-base)]` and
+   * `ease-[var(--ease-out-quart)]`: uglier in the markup, but an arbitrary value referencing a
+   * missing variable is visible in the DOM rather than absent from the stylesheet. */
+  --default-transition-duration: var(--duration-base);
+  --default-transition-timing-function: var(--ease-standard);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+
+  /* `rounded-pill` — the DEMO DATA badge in both app headers. Undefined, it computed to
+   * `border-radius: 0px`, so the badge that exists to say "none of this is real" rendered as a hard
+   * square in the one spot every screenshot includes. */
+  --radius-pill: 9999px;
+
+  /* `rounded-control` (inputs, buttons) and `rounded-card` (panels) — 83 usages between them. */
+  --radius-control: calc(var(--radius) - 2px);
+  --radius-card: var(--radius);
+
+  /* shadow-overlay, for the slide-over nav. shadow-card already exists below. */
+  --shadow-overlay: 0 24px 48px -12px rgb(15 23 42 / 0.35);
+
   /* shadcn's surface + intent tokens, exposed as utilities. */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -208,6 +344,42 @@
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    /* The Firefox/macOS half of the pair above. Without it Inter renders a visibly heavier weight in
+     * Firefox than in Chrome on the same machine, which reads as the brand font being wrong rather
+     * than as a rasteriser difference. */
+    -moz-osx-font-smoothing: grayscale;
+    /* 1.55 rather than Tailwind's 1.5 body default. Inter has a tall x-height, so lines set at 1.5
+     * sit closer than the metric suggests and a paragraph of consent copy — which is what most of
+     * the reading on these screens is — starts to look like a block. Utilities still win, so a
+     * `leading-tight` heading is unaffected. */
+    line-height: 1.55;
+  }
+
+  /* HEADING RHYTHM. Optical sizing, then negative tracking that scales with the size.
+   *
+   * Large type at default tracking looks loose because letter-spacing is a fixed fraction of the em
+   * and the perceived gap grows faster than the glyphs do; -0.02em at 24px is what makes a page
+   * title look typeset rather than merely big. Small type needs the opposite treatment, which is why
+   * h4/h5/h6 are left alone entirely — tightening 13px text costs legibility and buys nothing.
+   *
+   * `leading` is set here too because a heading that inherits the body's 1.55 wraps with a gap wide
+   * enough to read as two separate lines of text. Every one of these is a Tailwind base-layer rule,
+   * so any `tracking-*` or `leading-*` utility on the element still overrides it. */
+  h1,
+  h2,
+  h3 {
+    font-optical-sizing: auto;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  h1 {
+    letter-spacing: -0.022em;
+  }
+  h2 {
+    letter-spacing: -0.018em;
+  }
+  h3 {
+    letter-spacing: -0.012em;
   }
 }
 
@@ -235,14 +407,267 @@
     0 4px 12px -2px color-mix(in oklch, var(--primary) 32%, transparent);
 }
 
+/* ================================================================== motion primitives
+ *
+ * Multi-property effects live here as classes rather than as strings of utilities, for the same
+ * reason `.focus-ring` does: `hover:-translate-y-px hover:shadow-raised transition-[transform,box-shadow] duration-[var(--duration-base)] ease-[var(--ease-standard)]`
+ * repeated at twenty call sites is twenty chances to get one of the six pieces wrong, and a hover
+ * lift with no transition is worse than no hover lift at all.
+ *
+ * They are declared OUTSIDE `@layer`, so they beat Tailwind utilities on the same element. That is
+ * intentional and it is also a trap: `.lift hover:shadow-none` will not do what you expect. If you
+ * need to opt out of one of these, drop the class.
+ */
+
 /* A card that responds to the pointer. 1px of lift — a card that jumps 4px on hover belongs on a
- * marketing site, not an account screen. */
+ * marketing site, not an account screen.
+ *
+ * Only for cards that DO something when clicked. A lift on a static panel promises an interaction
+ * that is not there, and the promise is worse than the flatness.
+ *
+ * `will-change` is deliberately absent. It would promote every card on the dashboard to its own
+ * compositor layer for the entire life of the page to buy a 1px transform that is already cheap;
+ * on a long accounts list that trade is memory for nothing.
+ *
+ * THE PROPERTY LIST IS LONG ON PURPOSE, here and in `.press` below, and it is one shared list.
+ *
+ * These classes sit outside `@layer`, so whatever they declare BEATS a `transition-colors` utility
+ * on the same element and replaces it wholesale. A list of just `transform, box-shadow` would
+ * therefore silently delete the hover-tint transition from every element that gained one of these
+ * classes — the change would look like it worked and quietly make the app worse. So the list covers
+ * everything this codebase actually animates: `filter` for the primary button's hover brightness,
+ * and `scale`/`translate` alongside `transform` because Tailwind v4 sets those as their own CSS
+ * properties rather than composing one `transform` string.
+ *
+ * Longhand rather than the `transition` shorthand, because the shorthand needs the duration repeated
+ * once per property and nine copies of `var(--duration-base)` is nine chances for one of them to
+ * drift. One duration per class instead, which is also the honest design: everything on a card
+ * settles together or it looks like two separate animations. */
+.lift,
+.press {
+  transition-property:
+    transform, scale, translate, box-shadow, border-color, background-color, color, opacity, filter;
+  transition-timing-function: var(--ease-standard);
+}
 .lift {
-  transition:
-    transform 180ms cubic-bezier(0.2, 0, 0, 1),
-    box-shadow 180ms cubic-bezier(0.2, 0, 0, 1);
+  transition-duration: var(--duration-base);
 }
 .lift:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-raised);
+}
+/* The pressed state exists so a clickable card does not feel like it swallowed the click. It returns
+ * PAST its resting position, not just to it, which is what makes the gesture read as a physical
+ * press rather than as the hover simply switching off. */
+.lift:active {
+  transform: translateY(0);
+  transition-duration: var(--duration-fast);
+}
+
+/* The pressed state for buttons and icon buttons.
+ *
+ * A hair of scale rather than a translate: a button that moves down on press drifts away from the
+ * pointer, whereas one that shrinks stays centred under it. 0.97 is the smallest value that is
+ * unmistakably felt on a 44px target and the largest that does not make the label look like it
+ * re-rendered at a different size — anything under 0.95 starts to blur the text mid-transition.
+ *
+ * Scoped to `:not(:disabled)` because a disabled control that still animates on click is actively
+ * misleading: it tells the user the press registered when nothing happened. */
+.press {
+  transition-duration: var(--duration-fast);
+}
+.press:active:not(:disabled):not([aria-disabled='true']) {
+  transform: scale(0.97);
+}
+
+/* Something that has just appeared in the DOM — an error line under a field, a validation banner,
+ * the OTP failure message.
+ *
+ * A keyframe rather than a transition, because there is no "before" state to transition FROM: React
+ * has only just mounted the node. Fade plus 3px of downward travel, so the eye is pulled to where
+ * the text arrived; a pure fade at this size is easy to miss entirely, which defeats the point when
+ * the thing that appeared is the reason the form did not submit.
+ *
+ * NOT a height animation. Interpolating to `auto` needs either a wrapper with a grid-row trick or
+ * `interpolate-size`, and the honest cost of both is a DOM node or a browser-support caveat around
+ * every error string in thirty forms. The layout shift is one line of 12px text; the fade is what
+ * the eye actually registers. */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.reveal {
+  animation: reveal var(--duration-base) var(--ease-out-quart) both;
+}
+/* The same entrance for a full panel or banner, which needs the longer duration and a little more
+ * travel — a 3px slide on a 200px-tall block is not perceptible as movement at all. */
+@keyframes reveal-block {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.reveal-block {
+  animation: reveal-block var(--duration-slow) var(--ease-out-quart) both;
+}
+
+/* A rejected value: wrong OTP, failed credentials.
+ *
+ * Small and fast and it does not repeat. A shake is a warning, and a warning that goes on for half a
+ * second becomes a punishment — the user already knows they got it wrong, the animation only has to
+ * say WHICH field. Amplitude stays under 5px so the digits remain readable throughout; a bigger
+ * shake means re-reading the boxes to see what is still in them. */
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+.shake {
+  animation: shake var(--duration-slow) var(--ease-in-out-quad);
+}
+
+/* Placeholder geometry for content that is on its way.
+ *
+ * A shimmering block, not a spinner: a skeleton says "this specific shape is loading here", which
+ * keeps the layout from jumping when the real content lands. The sweep is a moving gradient rather
+ * than an opacity pulse because a pulse reads as "broken/retrying" while a sweep reads as "working".
+ *
+ * 1.6s is deliberately slow. A fast shimmer on several stacked blocks turns a loading state into a
+ * strobing wall, and these skeletons appear in groups.
+ *
+ * NO CALL SITE YET, and that is not an oversight. Neither app fetches anything: every account,
+ * balance and KYC step is read synchronously out of localStorage, so a skeleton on those screens
+ * would be pure theatre — a loading state for a read that has already finished. The one real network
+ * read in the product is the consent panel, and that lives inside the Akku SDK, which this repo does
+ * not own and must not edit. This exists so that when a screen does gain a fetch, the shimmer is
+ * already tokenised and already covered by the reduced-motion block — rather than being reinvented
+ * with a hardcoded grey and a 700ms pulse. */
+@keyframes skeleton-sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+.skeleton {
+  background-color: var(--muted);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklch, var(--surface) 70%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.6s linear infinite;
+  /* Spelled out rather than `var(--radius-control)`. Tailwind v4 does emit inline theme variables at
+   * `:root` (verified in the compiled output), so the reference would in fact resolve today — but it
+   * resolves because of how `@theme inline` happens to be implemented, not because anything
+   * guarantees it, and this is the only hand-written rule in the file that would depend on that.
+   * Same arithmetic, no bet. */
+  border-radius: calc(var(--radius) - 2px);
+}
+
+/* The keyboard focus indicator, used 37 times across both apps.
+ *
+ * A class rather than a token because it sets several properties at once, and it is restored here
+ * for the same reason as the colours above — it silently stopped existing, which means every one of
+ * those controls lost its visible focus state. That is an accessibility regression, not a cosmetic
+ * one: a keyboard user could not see where they were.
+ *
+ * Now three pixels rather than two, with a soft halo behind it. The 2px version disappeared against
+ * the navy sidebar and against the brand-violet buttons — the violet ring on a violet surface was
+ * technically present and practically invisible. The halo is what gives it contrast on BOTH the
+ * near-white page and the dark chrome without needing a per-surface variant, and it is drawn with
+ * box-shadow rather than a second outline because an element gets exactly one outline.
+ *
+ * DELIBERATELY UNANIMATED. An earlier draft transitioned `outline-offset`, which meant declaring a
+ * `transition` shorthand on `.focus-ring` — and because this rule sits outside `@layer`, that would
+ * have overridden the `transition-colors` utility on all ~40 elements that carry both classes,
+ * killing the hover tint on every sidebar item to buy a 140ms flourish nobody asked for. A focus
+ * ring appearing instantly is also simply better: for a keyboard user tabbing quickly, a ring that
+ * eases in reads as the browser still deciding where focus is. */
+.focus-ring:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px color-mix(in oklch, var(--ring) 22%, transparent);
+}
+
+/* ================================================================== reduced motion
+ *
+ * THE KILL SWITCH, and the reason every rule above is allowed to exist.
+ *
+ * `prefers-reduced-motion: reduce` is not a preference about taste. For someone with a vestibular
+ * disorder, movement on screen causes nausea and dizziness — the OS-level setting is a medical
+ * accommodation, and honouring it per-component means honouring it in the ones somebody remembered.
+ * So this is deliberately a blanket rule with `!important` and a universal selector: it covers the
+ * classes above, the `transition-colors` utilities scattered across both apps, tw-animate-css's
+ * `animate-in`/`animate-out`, Radix's dialog and select entrances, and Sonner's toast slide —
+ * including any of those added after this file was last read.
+ *
+ * `0.01ms` rather than `0`: a zero-duration animation never fires `animationend`, and Radix keeps a
+ * closing dialog mounted until that event arrives. Zero would leave a dismissed dialog in the DOM
+ * forever. One hundredth of a millisecond is instant to the eye and still a real event to the
+ * browser.
+ *
+ * THE TRADEOFF, stated plainly: this also freezes the `animate-spin` loading spinner on submit
+ * buttons and the skeleton sweep, so under reduced motion they become a static icon and a static
+ * grey block. That is accepted rather than worked around, because the loading state is never carried
+ * by the animation alone — the button swaps its label to "Working…" and goes `disabled`, and a
+ * skeleton communicates by occupying the space. Exempting spinners here was the alternative, and it
+ * would mean the one thing that keeps moving is a rotation, which is the motion class that provokes
+ * vestibular symptoms most reliably.
+ *
+ * `scroll-behavior: auto` is in the same block because smooth scrolling is motion the user did not
+ * ask for either, and it is the one that moves the entire viewport. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    animation-delay: 0ms !important;
+  }
+
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  /* Transforms are not durations, so the blanket rule above does not remove them — it only makes
+   * them snap. A hover lift or a pressed scale that JUMPS is still movement, and an instantaneous
+   * jump is arguably worse than a smooth one. Neutralised explicitly. The colour and shadow changes
+   * on the same elements are kept, so every interactive state remains distinguishable — this turns
+   * motion off, it does not turn feedback off. */
+  .lift:hover,
+  .lift:active,
+  .press:active,
+  .shake {
+    transform: none !important;
+    animation: none !important;
+  }
 }

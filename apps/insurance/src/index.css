@@ -9,10 +9,53 @@
    `@theme inline` and `@layer base`, both of which need Tailwind's layers to exist first. */
 @import '../../../packages/shared/src/theme.css';
 
-/* Inter, with font-display: swap so text is never invisible while the font loads. */
 /* Akku's consent surfaces ship their own stylesheet and are unstyled without it. Imported at the
    entry rather than in a page, because AskModal and DisclosureModal appear on whichever screen the
    question belongs to — a per-page import would silently unstyle the first one someone forgets. */
 @import '@akku-work/consent-auth/styles.css';
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* NO @import FOR THE FONT — it moved to index.html.
+ * It used to sit here, after the imports above, and CSS requires every @import to precede
+ * all other statements. PostCSS warned and DROPPED it, so `--font-sans` asked for Inter,
+ * nothing ever fetched Inter, and both apps silently rendered in system-ui. A <link> in the
+ * document head is also faster: a CSS @import cannot start downloading until the stylesheet
+ * that contains it has itself parsed. */
+
+/* ---------------------------------------------------------------------------------------------
+ * THE INSURER'S ACCENT. Teal, overriding the shared violet — for this app only.
+ *
+ * The two products share every component and one KYC record, which is the point of the demo; they
+ * should not share an identity. Insurance already had a teal shield in its shell, so the rest of the
+ * app disagreed with its own logo: the login panel came out teal and its Sign in button violet,
+ * because that button reads `--primary` from the shared theme.
+ *
+ * Overridden HERE rather than per component. `--primary` covers every shadcn control (button, ring,
+ * checkbox, select) and the `--brand-*` ramp covers this app's own 36 utility usages, so one block
+ * moves the whole product instead of thirty-six edits that would drift apart.
+ *
+ * Lightness is chosen for CONTRAST, not for prettiness: `--primary` at L 0.55 carries white label
+ * text at better than 4.5:1, which the brighter teal-500 does not. That is why the button is a shade
+ * deeper than the logo it matches.
+ * ------------------------------------------------------------------------------------------- */
+:root {
+  --primary: oklch(0.55 0.105 183);
+  --primary-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.55 0.105 183);
+  /* The primary button is a GRADIENT, and its far stop lives in its own token. Overriding only
+   * `--primary` left every primary button running teal -> violet, which looked like a rendering bug
+   * rather than a brand. Found by reading the button's computed backgroundImage, not by looking at
+   * it — the violet is only the last 30% of a 135deg sweep and is easy to miss on screen. */
+  --primary-grad-to: oklch(0.62 0.13 176);
+
+  --brand-50: oklch(0.98 0.018 183);
+  --brand-100: oklch(0.952 0.04 183);
+  --brand-200: oklch(0.905 0.066 183);
+  --brand-300: oklch(0.83 0.095 183);
+  --brand-500: oklch(0.7 0.12 183);
+  --brand-600: oklch(0.6 0.115 183);
+  --brand-700: oklch(0.51 0.1 184);
+
+  /* The sidebar's active-item accent, so the nav highlight follows the product too. */
+  --sidebar-primary: oklch(0.7 0.12 183);
+  --sidebar-ring: oklch(0.7 0.12 183);
+}
