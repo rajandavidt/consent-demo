@@ -55,7 +55,12 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        // --duration-instant, not the 200ms default. A row tint is pure pointer feedback: by the time
+        // a 200ms fade finishes the cursor has usually crossed into the NEXT row, so scanning a
+        // transaction table drags a trail of half-lit rows behind the pointer. Overriding the default
+        // here rather than lowering it globally is the whole point of having a scale — hover tints
+        // want instant, state changes want base.
+        "border-b transition-colors duration-[var(--duration-instant)] hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
         className
       )}
       {...props}

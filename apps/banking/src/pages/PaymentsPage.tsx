@@ -278,8 +278,14 @@ export default function PaymentsPage() {
             </section>
           )}
 
+          {/* `reveal-block` on the forward steps of the wizard and NOT on `compose`. Compose is the
+              page's initial state, so animating it would perform an entrance on every arrival at
+              /payments for a panel that was simply always there. Review and OTP are transitions the
+              user caused, one panel replacing another in the same slot — without the fade the swap is
+              a hard cut and there is nothing to tell you the step advanced rather than the fields
+              having been rewritten in place. */}
           {phase === 'review' && (
-            <section className="rounded-card border border-border-subtle bg-surface p-5 shadow-card">
+            <section className="reveal-block rounded-card border border-border-subtle bg-surface p-5 shadow-card">
               <h2 className="text-sm font-semibold text-slate-900">Check before you send</h2>
               {/* Large and exact. This is the last chance to spot an extra zero. */}
               <p className="num mt-4 text-3xl font-semibold tracking-tight text-slate-900">
@@ -316,7 +322,7 @@ export default function PaymentsPage() {
           )}
 
           {phase === 'otp' && (
-            <section className="rounded-card border border-border-subtle bg-surface p-5 shadow-card">
+            <section className="reveal-block rounded-card border border-border-subtle bg-surface p-5 shadow-card">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                 <ShieldCheck className="h-4 w-4 text-brand-600" strokeWidth={1.75} aria-hidden />
                 Confirm {formatInr(value)} to {payeeName}

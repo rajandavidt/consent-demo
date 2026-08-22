@@ -54,7 +54,23 @@ export function OtpInput({
         <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-600">
           Enter the {OTP_LENGTH}-digit OTP
         </label>
-        <div className="flex gap-2" role="group" aria-label={`${OTP_LENGTH} digit one time passcode`}>
+        {/* THE SHAKE IS A TOGGLED CLASS, NOT A KEYED WRAPPER, and that distinction is the trick.
+            A `key` that changed per attempt would remount all six inputs and drop the caret: the hook
+            only re-focuses when `focusIndex` CHANGES, and after a failed attempt it is already 0, so
+            the effect would not fire and the user would be left with no cursor in a cleared field.
+            Toggling a class needs no remount and still replays the animation, because `verify()`
+            always passes through `verifying` between two failures — so `.shake` comes off and goes
+            back on, which is what restarts a CSS animation.
+            Colour carries the error as well (rose border and fill, below). The shake says WHICH field
+            went wrong; the colour is what still says it a second later, once the motion is over — and
+            what says it at all for someone who has motion turned off. */}
+        <div
+          className={
+            'flex gap-2 ' + (otp.phase === 'error' || otp.phase === 'locked' ? 'shake' : '')
+          }
+          role="group"
+          aria-label={`${OTP_LENGTH} digit one time passcode`}
+        >
           {otp.digits.map((digit, index) => (
             <input
               key={index}
@@ -79,25 +95,43 @@ export function OtpInput({
                 if (e.key === 'Enter') otp.verify();
               }}
               className={
-                'h-12 w-12 rounded-lg border text-center text-lg font-semibold outline-none transition ' +
+                // The bare `transition` utility was already here; what it lacked was a duration it
+                // chose, and now it inherits --duration-base from the theme. Pinned to
+                // --duration-fast instead, because these six boxes are the most keyboard-driven
+                // control in the product: someone types six digits in about a second, and a 200ms
+                // border fade means box 3 is still catching up while they are filling box 5.
+                //
+                // `focus:` kept rather than tightened to `focus-visible:`, which was the first
+                // instinct and is wrong here. The hook moves focus between these boxes itself as you
+                // type, and a box the caret is sitting in with no ring around it is unreadable —
+                // these six inputs have no labels and no other indication of where you are. This is
+                // the rare control where a mouse click should light it up too.
+                //
+                // `disabled:` states added: the boxes go disabled while verifying, and until now the
+                // only sign of that was that typing stopped working.
+                'h-12 w-12 rounded-lg border text-center text-lg font-semibold outline-none transition duration-[var(--duration-fast)] disabled:cursor-not-allowed disabled:opacity-70 ' +
                 (otp.phase === 'error' || otp.phase === 'locked'
                   ? 'border-rose-400 bg-rose-50 text-rose-900'
                   : otp.phase === 'success'
                     ? 'border-emerald-400 bg-emerald-50 text-emerald-900'
-                    : 'border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100')
+                    : 'border-slate-300 hover:border-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100')
               }
             />
           ))}
         </div>
       </div>
 
+      {/* `key` on the message text, so a SECOND failure replays the entrance. Without it React
+          reuses the node and "2 attempts remaining" becomes "1 attempt remaining" with no visible
+          event — the number changes under a line of text somebody has already read and stopped
+          looking at. */}
       {otp.error && (
-        <p role="alert" className="text-sm font-medium text-rose-700">
+        <p key={otp.error} role="alert" className="reveal text-sm font-medium text-rose-700">
           {otp.error}
         </p>
       )}
       {otp.phase === 'success' && (
-        <p className="text-sm font-medium text-emerald-700">Verified successfully.</p>
+        <p className="reveal text-sm font-medium text-emerald-700">Verified successfully.</p>
       )}
 
       <div className="flex items-center justify-between text-sm">
@@ -107,14 +141,15 @@ export function OtpInput({
             <button
               type="button"
               onClick={otp.resend}
-              className="font-semibold text-indigo-600 hover:underline"
+              className="focus-ring rounded font-semibold text-indigo-600 hover:underline"
             >
               Resend OTP
             </button>
           ) : (
-            <span className="text-slate-400">
-              Resend in {otp.secondsLeft}s
-            </span>
+            // `.num` because this is a COUNTDOWN. Inter's proportional digits are different widths,
+            // so "30s" → "29s" → "28s" nudges the whole line sideways once a second; tabular figures
+            // pin it. This is the single most visible place in either app for the effect.
+            <span className="num text-slate-400">Resend in {otp.secondsLeft}s</span>
           )}
         </div>
         {secondaryAction}
@@ -124,7 +159,11 @@ export function OtpInput({
         type="button"
         onClick={otp.verify}
         disabled={disabled || otp.phase === 'locked'}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+        // `press` and `focus-ring` — this button had neither, which made it the one primary action in
+        // the product with no pressed state and no visible keyboard focus. It does not go through the
+        // shared Button component (it renders its own three-way label from the OTP phase), so it did
+        // not inherit either for free.
+        className="focus-ring press w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
       >
         {otp.phase === 'verifying' ? 'Verifying…' : otp.phase === 'success' ? 'Verified' : verifyLabel}
       </button>

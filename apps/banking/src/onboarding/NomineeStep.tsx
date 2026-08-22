@@ -224,7 +224,7 @@ export default function NomineeStep({ standalone = false }: { standalone?: boole
                           type="button"
                           onClick={() => startEdit(nominee)}
                           aria-label={`Edit ${nominee.name}`}
-                          className="focus-ring grid h-9 w-9 place-items-center rounded-control text-slate-500 hover:bg-surface-sunken hover:text-brand-600"
+                          className="focus-ring press grid h-9 w-9 place-items-center rounded-control text-slate-500 hover:bg-surface-sunken hover:text-brand-600"
                         >
                           <Pencil className="h-4 w-4" strokeWidth={1.75} aria-hidden />
                         </button>
@@ -232,7 +232,7 @@ export default function NomineeStep({ standalone = false }: { standalone?: boole
                           type="button"
                           onClick={() => remove(nominee)}
                           aria-label={`Remove ${nominee.name}`}
-                          className="focus-ring grid h-9 w-9 place-items-center rounded-control text-slate-500 hover:bg-status-rejected-soft hover:text-status-rejected"
+                          className="focus-ring press grid h-9 w-9 place-items-center rounded-control text-slate-500 hover:bg-status-rejected-soft hover:text-status-rejected"
                         >
                           <Trash2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
                         </button>

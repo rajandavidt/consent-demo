@@ -150,15 +150,20 @@ export default function ClaimsPage() {
           </p>
           <Link
             to="/apply"
-            className="focus-ring mt-4 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
+            className="focus-ring press mt-4 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
           >
             Buy a policy
           </Link>
         </div>
       )}
 
+      {/* `reveal-block` — the longer entrance, because this is a whole form arriving below a button
+          that is several hundred pixels up the page. The eye has to be told where it went; a hard cut
+          at this size reads as the page having reloaded into a different state. Cheap insurance
+          against the other failure mode too: with the form appearing instantly, someone who clicked
+          "File a claim" twice could not tell whether the second click did anything. */}
       {formOpen && (
-        <section className="rounded-card border border-brand-200 bg-brand-50/40 p-5">
+        <section className="reveal-block rounded-card border border-brand-200 bg-brand-50/40 p-5">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
             <HeartPulse className="h-4 w-4 text-brand-600" strokeWidth={1.75} aria-hidden />
             New claim

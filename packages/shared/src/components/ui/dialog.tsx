@@ -39,7 +39,18 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 z-50 bg-black/50 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
+        // THE OVERLAY AND THE PANEL WERE OUT OF STEP. tw-animate-css reads `--tw-duration`, which is
+        // what Tailwind's `duration-*` utility sets — the panel carried `duration-200` and the
+        // overlay carried nothing, so it fell back to the library default of 150ms. The scrim
+        // finished darkening 50ms before the dialog finished arriving, which reads as the backdrop
+        // and the dialog being two unrelated things. Both now take --duration-slow: this is an
+        // entrance, and the eye has to find the panel before it can read it.
+        //
+        // No `backdrop-blur` on the scrim, even though the mobile nav drawer has one. A blur over the
+        // whole viewport is a full-screen repaint every frame of the fade, and on the payment modal
+        // it sits behind an OTP field somebody is typing into — dropped frames there are worse than
+        // a flat scrim.
+        "fixed inset-0 z-50 bg-black/50 duration-[var(--duration-slow)] ease-[var(--ease-out-quart)] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
         className
       )}
       {...props}
@@ -61,7 +72,12 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg",
+          // `zoom-in-95` kept rather than swapped for a slide. A dialog that slides up from the
+          // bottom edge implies it came from somewhere, and these dialogs do not — they are a
+          // confirmation of the thing you just clicked, so growing into place from the centre is the
+          // honest gesture. `shadow-overlay` in place of `shadow-lg` so the panel uses this
+          // platform's layered shadow rather than Tailwind's single hard one.
+          "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-overlay duration-[var(--duration-slow)] ease-[var(--ease-out-quart)] outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 sm:max-w-lg",
           className
         )}
         {...props}
@@ -70,7 +86,12 @@ function DialogContent({
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            // `focus-visible` rather than the registry's `focus`. `focus:ring-2` fires on a MOUSE
+            // click too, so closing one dialog left a ring on the X of the next one you opened — a
+            // focus indicator that appears when you did not use the keyboard trains people to ignore
+            // focus indicators. Given a real hit area and a hover fill at the same time: an 16px
+            // glyph at 70% opacity is both hard to hit and hard to tell apart from decoration.
+            className="press absolute top-3 right-3 grid size-8 place-items-center rounded-control text-muted-foreground opacity-80 hover:bg-secondary hover:text-foreground hover:opacity-100 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
           >
             <XIcon />
             <span className="sr-only">Close</span>

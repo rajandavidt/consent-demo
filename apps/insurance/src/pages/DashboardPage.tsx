@@ -58,7 +58,7 @@ export default function DashboardPage() {
         {ready && (
           <Link
             to="/apply"
-            className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-control bg-brand-600 px-4 text-sm font-semibold text-white shadow-card hover:bg-brand-700"
+            className="focus-ring press inline-flex min-h-11 items-center gap-2 rounded-control bg-brand-600 px-4 text-sm font-semibold text-white shadow-card hover:bg-brand-700"
           >
             <PlusCircle className="h-4 w-4" strokeWidth={2} aria-hidden />
             Buy a policy
@@ -115,7 +115,7 @@ export default function DashboardPage() {
             {!ready && (
               <a
                 href="http://localhost:5200/kyc"
-                className="focus-ring mt-3 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
+                className="focus-ring press mt-3 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
               >
                 Continue KYC in FinSecure Bank →
               </a>
@@ -140,7 +140,7 @@ export default function DashboardPage() {
             {ready && (
               <Link
                 to="/apply"
-                className="focus-ring mt-4 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
+                className="focus-ring press mt-4 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
               >
                 Buy a policy
               </Link>

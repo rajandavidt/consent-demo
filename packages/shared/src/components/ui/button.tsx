@@ -4,8 +4,24 @@ import { Slot } from "radix-ui"
 
 import { cn } from "../../lib/utils.js"
 
+// Three edits to the registry's base string, all of them interaction rather than styling.
+//
+// `press` replaces the stock `transition-all`. It carries the pressed-state scale AND the transition
+// property list — see `.press` in theme.css, which is deliberately unlayered so it wins over any
+// transition utility landing on the same element. A button with no pressed state is the most-noticed
+// missing micro-interaction in a form-heavy app: on a save the only feedback is the loading spinner,
+// which arrives a beat after the click, so until then the user cannot tell the click landed at all.
+//
+// `focus-visible:ring-offset-2` because the stock ring is `ring-ring/50` — the brand violet at half
+// opacity — and this platform's primary button is a violet gradient. Violet on violet was a focus
+// ring that technically existed and could not be seen. The offset puts a page-coloured gap between
+// the button and its ring, which fixes every variant rather than only the one that broke.
+//
+// `disabled:grayscale-50` on top of the stock `disabled:opacity-50`, because opacity alone does
+// not do the job on the gradient variant: a half-opacity violet gradient is still a saturated,
+// confident, clickable-looking button. Draining the colour is what reads as "not available".
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "press inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 disabled:grayscale-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {

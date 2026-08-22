@@ -236,7 +236,11 @@ export default function DocumentsStep({ standalone = false }: { standalone?: boo
                         type="button"
                         onClick={() => openPlaceholder(doc, false)}
                         aria-label={`Preview ${label}`}
-                        className="focus-ring grid h-9 w-9 place-items-center rounded-control text-slate-500 hover:bg-surface-sunken hover:text-brand-600"
+                        // `press` on all three row actions here and in NomineeStep. They had a
+                        // hover tint with no transition-property, so it snapped, and no pressed
+                        // state — which on the delete button is the one place you most want to know
+                        // the click registered, because the row it belonged to is about to vanish.
+                        className="focus-ring press grid h-9 w-9 place-items-center rounded-control text-slate-500 hover:bg-surface-sunken hover:text-brand-600"
                       >
                         <Eye className="h-4 w-4" strokeWidth={1.75} aria-hidden />
                       </button>
@@ -244,7 +248,7 @@ export default function DocumentsStep({ standalone = false }: { standalone?: boo
                         type="button"
                         onClick={() => openPlaceholder(doc, true)}
                         aria-label={`Download ${label}`}
-                        className="focus-ring grid h-9 w-9 place-items-center rounded-control text-slate-500 hover:bg-surface-sunken hover:text-brand-600"
+                        className="focus-ring press grid h-9 w-9 place-items-center rounded-control text-slate-500 hover:bg-surface-sunken hover:text-brand-600"
                       >
                         <Download className="h-4 w-4" strokeWidth={1.75} aria-hidden />
                       </button>
@@ -252,7 +256,7 @@ export default function DocumentsStep({ standalone = false }: { standalone?: boo
                         type="button"
                         onClick={() => remove(slot, label)}
                         aria-label={`Remove ${label}`}
-                        className="focus-ring grid h-9 w-9 place-items-center rounded-control text-slate-500 hover:bg-status-rejected-soft hover:text-status-rejected"
+                        className="focus-ring press grid h-9 w-9 place-items-center rounded-control text-slate-500 hover:bg-status-rejected-soft hover:text-status-rejected"
                       >
                         <Trash2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
                       </button>

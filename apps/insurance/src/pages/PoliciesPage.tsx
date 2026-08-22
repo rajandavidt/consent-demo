@@ -49,7 +49,7 @@ export default function PoliciesPage() {
           <p className="mt-3 text-sm font-medium text-slate-800">No policies yet</p>
           <Link
             to="/apply"
-            className="focus-ring mt-4 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
+            className="focus-ring press mt-4 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
           >
             Buy a policy
           </Link>

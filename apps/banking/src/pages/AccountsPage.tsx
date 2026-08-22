@@ -55,7 +55,13 @@ export default function AccountsPage() {
               onClick={() => setSelected(a.id)}
               aria-pressed={active}
               className={
-                'focus-ring rounded-card border p-5 text-left shadow-card transition-colors ' +
+                // `lift` — these ARE the click target: picking one switches the statement below, and
+                // they are the only cards in either app that qualify. That is exactly why the lift is
+                // an opt-in on `Card` rather than something every panel gets.
+                // `transition-colors` comes OFF rather than sitting alongside: `.lift` is unlayered,
+                // so it would override the utility anyway, and its own property list already covers
+                // the border and background this button changes on hover and on selection.
+                'focus-ring lift rounded-card border p-5 text-left shadow-card ' +
                 (active
                   ? 'border-brand-500 bg-brand-50/50 ring-1 ring-brand-500'
                   : 'border-border-subtle bg-surface hover:border-border-strong')

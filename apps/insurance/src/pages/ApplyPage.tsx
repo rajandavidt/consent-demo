@@ -174,7 +174,7 @@ export default function ApplyPage() {
         <div className="flex justify-center gap-2">
           <Link
             to="/policies"
-            className="focus-ring inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
+            className="focus-ring press inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
           >
             View my policies
           </Link>
@@ -212,7 +212,7 @@ export default function ApplyPage() {
               </p>
               <a
                 href="http://localhost:5200/kyc"
-                className="focus-ring mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
+                className="focus-ring press mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
               >
                 Complete KYC in FinSecure Bank
                 <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -240,7 +240,11 @@ export default function ApplyPage() {
           <li
             key={s.id}
             className={
-              'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ' +
+              // This horizontal stepper had no transition-property, so a stage completing flipped the
+              // pill from brand violet straight to verified green in one frame. --duration-base:
+              // this is a state change on something already on screen, and it is the app's only
+              // signal that the previous stage was accepted.
+              'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ' +
               (s.id === stage
                 ? 'bg-brand-600 text-white'
                 : index < stageIndex
@@ -297,8 +301,13 @@ export default function ApplyPage() {
             </section>
           )}
 
+          {/* `reveal-block` on every stage EXCEPT `cover`, which is what /apply looks like when you
+              arrive — animating it would perform an entrance for a panel that was always there.
+              The other four replace one another in the same slot, and without the fade the swap is a
+              hard cut: nothing tells you the stage advanced rather than the fields having been
+              rewritten in place. Same reasoning, same class, as the payments wizard in the bank app. */}
           {stage === 'kyc' && (
-            <section className="rounded-card border border-border-subtle bg-surface p-5 shadow-card">
+            <section className="reveal-block rounded-card border border-border-subtle bg-surface p-5 shadow-card">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                 <ShieldCheck className="h-4 w-4 text-status-verified" strokeWidth={1.75} aria-hidden />
                 Your verified details
@@ -333,7 +342,7 @@ export default function ApplyPage() {
           )}
 
           {stage === 'health' && (
-            <section className="rounded-card border border-border-subtle bg-surface p-5 shadow-card">
+            <section className="reveal-block rounded-card border border-border-subtle bg-surface p-5 shadow-card">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                 <HeartPulse className="h-4 w-4 text-brand-600" strokeWidth={1.75} aria-hidden />
                 Health &amp; existing cover
@@ -389,7 +398,7 @@ export default function ApplyPage() {
           )}
 
           {stage === 'nominee' && (
-            <section className="rounded-card border border-border-subtle bg-surface p-5 shadow-card">
+            <section className="reveal-block rounded-card border border-border-subtle bg-surface p-5 shadow-card">
               <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                 <ShieldCheck className="h-4 w-4 text-brand-600" strokeWidth={1.75} aria-hidden />
                 Who the payout goes to
@@ -424,7 +433,7 @@ export default function ApplyPage() {
           )}
 
           {stage === 'review' && (
-            <section className="rounded-card border border-border-subtle bg-surface p-5 shadow-card">
+            <section className="reveal-block rounded-card border border-border-subtle bg-surface p-5 shadow-card">
               <h2 className="text-sm font-semibold text-slate-900">Review your application</h2>
               <dl className="mt-4 divide-y divide-border-subtle text-sm">
                 {[

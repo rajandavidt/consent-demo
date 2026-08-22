@@ -71,9 +71,15 @@ export default function DashboardPage() {
             Every balance, transaction and verification below is fabricated demo data.
           </p>
         </div>
+        {/* `press` — and this is the pattern applied to all eleven brand-600 CTAs across both apps.
+            Every one of them is a react-router <Link> rather than the shared Button, so none of them
+            inherited a pressed state, and seven had no transition-property at all: the fill snapped
+            from brand-600 to brand-700 on hover. `.press` supplies both, and it replaces the
+            `transition-colors` that was on the two which had one — it is unlayered, so it would have
+            overridden that utility regardless, and its own property list already covers the fill. */}
         <Link
           to="/payments"
-          className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-control bg-brand-600 px-4 text-sm font-semibold text-white shadow-card transition-colors hover:bg-brand-700"
+          className="focus-ring press inline-flex min-h-11 items-center gap-2 rounded-control bg-brand-600 px-4 text-sm font-semibold text-white shadow-card hover:bg-brand-700"
         >
           <Send className="h-4 w-4" strokeWidth={2} aria-hidden />
           Make a payment
@@ -95,7 +101,7 @@ export default function DashboardPage() {
               {next && (
                 <Link
                   to={STEP_ROUTES[next]}
-                  className="focus-ring mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-control bg-brand-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+                  className="focus-ring press mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
                 >
                   {done === 0 ? 'Start verification' : `Continue with ${STEP_LABELS[next]}`}
                   <ArrowRight className="h-4 w-4" strokeWidth={2} aria-hidden />
@@ -215,7 +221,11 @@ function ProgressRing({ done, total }: { done: number; total: number }) {
           cx="40"
           cy="40"
           r={radius}
-          className="fill-none stroke-brand-600 transition-[stroke-dashoffset] duration-500"
+          // --duration-slow, replacing a one-off `duration-500` — the only timing in either app that
+          // was not on any scale. 500ms was also simply too long: the ring is the first thing on the
+          // page and half a second of a stroke creeping round reads as the number being calculated
+          // rather than as it having changed.
+          className="fill-none stroke-brand-600 transition-[stroke-dashoffset] duration-[var(--duration-slow)] ease-[var(--ease-out-quart)]"
           strokeWidth="7"
           strokeLinecap="round"
           strokeDasharray={circumference}

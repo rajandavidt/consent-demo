@@ -53,7 +53,7 @@ export default function DocumentsPage() {
           </p>
           <a
             href="http://localhost:5200/documents"
-            className="focus-ring mt-4 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
+            className="focus-ring press mt-4 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
           >
             Upload in FinSecure Bank →
           </a>
