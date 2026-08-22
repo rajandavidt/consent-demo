@@ -10,6 +10,7 @@ import {
   KEYS,
   STATUS_LABELS,
   STEP_LABELS,
+  STEP_ICONS,
   STEP_ROUTES,
   STEP_SEQUENCE,
   StatusBadge,
@@ -105,38 +106,89 @@ export default function KycPage() {
         <StatusBadge status={status} />
       </section>
 
-      <section className="rounded-card border border-border-subtle bg-surface shadow-card">
-        <header className="border-b border-border-subtle px-5 py-4">
-          <h2 className="text-sm font-semibold text-slate-900">Verification steps</h2>
-        </header>
-        <ul className="divide-y divide-border-subtle">
+      {/* WIDGET GRID, not a row list.
+          As rows this was ten near-empty lines: a label on the left and everything that mattered —
+          the status, the captured value, the action — pushed to the far right of a full-width page,
+          so the eye had to travel the whole screen per step and the middle was dead space. As cards
+          each step becomes one scannable unit, and the status is legible at a glance from the icon
+          tint alone rather than only from the badge text. */}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold text-slate-900">Verification steps</h2>
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {STEP_SEQUENCE.map((step) => {
             const state = kyc.steps[step];
             const value = captured(step);
+            const Icon = STEP_ICONS[step];
+            const done = state.status === 'verified';
+            const rejected = state.status === 'rejected';
+
             return (
-              <li key={step} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-3.5">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-slate-800">{STEP_LABELS[step]}</p>
-                  {value && <p className="num mt-0.5 text-xs text-slate-500">{value}</p>}
-                  {state.reason && (
-                    <p className="mt-0.5 text-xs text-status-rejected">{state.reason}</p>
-                  )}
-                  {state.verifiedAt && !state.reason && (
-                    <p className="mt-0.5 text-2xs text-slate-400">
-                      Verified {new Date(state.verifiedAt).toLocaleDateString('en-IN')}
+              <li
+                key={step}
+                className={
+                  'rounded-card border bg-surface shadow-card p-4 ' +
+                  (done
+                    ? 'border-status-verified/25'
+                    : rejected
+                      ? 'border-status-rejected/30'
+                      : 'border-border-subtle')
+                }
+              >
+                <div className="flex items-start gap-3">
+                  {/* The icon carries the state as colour, so a glance across the grid reads as a
+                      pattern of done / outstanding without parsing ten badges. */}
+                  <span
+                    className={
+                      'grid size-9 shrink-0 place-items-center rounded-full ' +
+                      (done
+                        ? 'bg-status-verified-soft text-status-verified'
+                        : rejected
+                          ? 'bg-status-rejected-soft text-status-rejected'
+                          : 'bg-surface-sunken text-slate-400')
+                    }
+                  >
+                    <Icon className="size-[18px]" strokeWidth={1.9} aria-hidden />
+                  </span>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-slate-800">
+                      {STEP_LABELS[step]}
                     </p>
+                    {/* The captured value is the point of this screen — "what do you hold about me"
+                        — so it sits directly under the name rather than as a trailing detail.
+                        NOTHING is rendered when there is no value, rather than a placeholder:
+                        `captured()` returns undefined for account, nominee, documents and consent
+                        because those steps hold no SINGLE value, so "Nothing captured yet" was a lie
+                        on a verified step. Silence is accurate; the footer already says whether the
+                        step is verified. */}
+                    {value && (
+                      <p className="num mt-0.5 truncate text-xs text-slate-600">{value}</p>
+                    )}
+                  </div>
+
+                  <StatusBadge status={state.status} />
+                </div>
+
+                {state.reason && (
+                  <p className="mt-3 text-xs text-status-rejected">{state.reason}</p>
+                )}
+
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-border-subtle pt-3">
+                  <span className="text-2xs text-slate-400">
+                    {state.verifiedAt && !state.reason
+                      ? 'Verified ' + new Date(state.verifiedAt).toLocaleDateString('en-IN')
+                      : 'Not verified'}
+                  </span>
+                  {state.status !== 'verified' && (
+                    <Link
+                      to={STEP_ROUTES[step]}
+                      className="focus-ring inline-flex items-center gap-0.5 rounded text-xs font-semibold text-brand-600 hover:underline"
+                    >
+                      {state.status === 'not_started' ? 'Start' : 'Resume'}
+                      <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
+                    </Link>
                   )}
                 </div>
-                <StatusBadge status={state.status} />
-                {state.status !== 'verified' && (
-                  <Link
-                    to={STEP_ROUTES[step]}
-                    className="focus-ring inline-flex items-center gap-0.5 rounded text-xs font-semibold text-brand-600 hover:underline"
-                  >
-                    {state.status === 'not_started' ? 'Start' : 'Resume'}
-                    <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} aria-hidden />
-                  </Link>
-                )}
               </li>
             );
           })}
