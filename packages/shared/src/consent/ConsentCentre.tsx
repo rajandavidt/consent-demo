@@ -12,7 +12,7 @@
 // customer something untrue about their own data.
 import { ConsentPreferences, useConsent } from '@akku-work/consent-auth/react';
 import { RotateCcw, ShieldCheck, TriangleAlert } from 'lucide-react';
-import { AKKU_CONFIG } from './config.js';
+import { AKKU_CONFIG, AKKU_CONFIGURED } from './config.js';
 import { policyElements } from './live-manager.js';
 import { InfoBanner } from '../ui/index.js';
 
@@ -22,6 +22,39 @@ export function ConsentCentre({
 }: {
   source?: string;
 }) {
+  // GUARDED BEFORE ANY HOOK, and this split is the whole reason the component is in two pieces.
+  //
+  // AkkuProvider mounts NO ConsentProvider when the build has no api host or site key, and
+  // `useConsent` throws outside a provider by design. So an unconfigured deployment did not show the
+  // message below — it took the entire page down with "no <ConsentProvider>", a white screen with the
+  // real cause only in the console. Found on the first Vercel deploy, where the env vars were not set.
+  //
+  // The hook cannot be called conditionally, so the part that reads consent lives in an inner
+  // component that is only rendered once there is something to read.
+  if (!AKKU_CONFIGURED) return <UnconfiguredNotice />;
+  return <ConsentCentreLive source={source} />;
+}
+
+/**
+ * What an unconfigured build shows instead of crashing.
+ *
+ * Names the two variables, because `VITE_*` values are inlined at BUILD time and have no defaults —
+ * so a deployment that forgot them fails silently, and "could not be loaded" would send someone
+ * hunting through CORS and network tabs for a missing environment variable.
+ */
+function UnconfiguredNotice() {
+  return (
+    <div className="space-y-5">
+      <InfoBanner tone="warning">
+        <strong>No consent API is configured for this build.</strong> Set{' '}
+        <code>VITE_AKKU_API_HOST</code> and <code>VITE_AKKU_SITE_KEY</code> and redeploy — they are
+        inlined when the app is built, so a restart alone will not pick them up.
+      </InfoBanner>
+    </div>
+  );
+}
+
+function ConsentCentreLive({ source }: { source: string }) {
   const { error } = useConsent();
 
   return (
