@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   useAuth,
+  CollectionPointConsent,
   Button,
   Field,
   InfoBanner,
@@ -95,6 +96,14 @@ export default function PanStep() {
       }
     >
       <div className="space-y-5">
+        {/* Shown on landing, before a digit is typed: what this PAN is used for, disclosed and
+            asked from the PUBLISHED policy. Returns null once answered, so it never becomes a nag. */}
+        <CollectionPointConsent
+          element="pan"
+          source="onboarding-pan"
+          title="Before you add your PAN"
+        />
+
         {status !== 'not_started' && (
           <div className="flex items-center gap-3">
             <span className="text-sm text-slate-600">Verification status</span>

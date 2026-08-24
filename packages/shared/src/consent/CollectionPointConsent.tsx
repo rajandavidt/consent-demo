@@ -28,7 +28,7 @@ export function CollectionPointConsent({
   // manager's config read, so asking for it before `states` resolves returns an empty list and the
   // modal silently decides it has nothing to disclose — a consent request that never happened.
   const { states } = useConsent();
-  if (states === null) return null;
+  if (states === undefined) return null;
 
   const purposeKeys = purposeKeysForElement(element);
   if (purposeKeys.length === 0) return null;
