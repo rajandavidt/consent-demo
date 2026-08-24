@@ -1,0 +1,25 @@
+{
+  // Vercel compiles `api/` with the tsconfig NEAREST to those files, not the one the local
+  // `typecheck` script happens to run. Without this the deploy log filled with TS2591 — "Cannot
+  // find name 'Buffer' / 'process' / 'node:crypto'" — because it fell back to a config with no node
+  // types and no node module resolution. The code was correct; nothing told the compiler it runs on
+  // a server.
+  //
+  // Deliberately NOT extending tsconfig.app.json: that one carries the DOM lib, and this directory
+  // must never be able to reach `window` or `document` by accident.
+  "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": ["node"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["."]
+}
