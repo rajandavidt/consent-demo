@@ -13,7 +13,7 @@
 import { ConsentPreferences, useConsent } from '@akku-work/consent-auth/react';
 import { RotateCcw, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { AKKU_CONFIG, AKKU_CONFIGURED } from './config.js';
-import { policyElements } from './live-manager.js';
+import { usePolicyElements } from './policy-elements.js';
 import { InfoBanner } from '../ui/index.js';
 
 export function ConsentCentre({
@@ -38,17 +38,20 @@ export function ConsentCentre({
 /**
  * What an unconfigured build shows instead of crashing.
  *
- * Names the two variables, because `VITE_*` values are inlined at BUILD time and have no defaults —
- * so a deployment that forgot them fails silently, and "could not be loaded" would send someone
- * hunting through CORS and network tabs for a missing environment variable.
+ * Names the variables, because `VITE_*` values are inlined at BUILD time and have no defaults — so a
+ * deployment that forgot one fails silently, and "could not be loaded" would send someone hunting
+ * through CORS and network tabs for a missing environment variable.
+ *
+ * Three of them now, not two: the authenticated plane also needs the application id.
  */
 function UnconfiguredNotice() {
   return (
     <div className="space-y-5">
       <InfoBanner tone="warning">
         <strong>No consent API is configured for this build.</strong> Set{' '}
-        <code>VITE_AKKU_API_HOST</code> and <code>VITE_AKKU_SITE_KEY</code> and redeploy — they are
-        inlined when the app is built, so a restart alone will not pick them up.
+        <code>VITE_AKKU_API_HOST</code>, <code>VITE_AKKU_SITE_KEY</code> and{' '}
+        <code>VITE_AKKU_APP_ID</code> and redeploy — they are inlined when the app is built, so a
+        restart alone will not pick them up.
       </InfoBanner>
     </div>
   );
@@ -56,6 +59,9 @@ function UnconfiguredNotice() {
 
 function ConsentCentreLive({ source }: { source: string }) {
   const { error } = useConsent();
+  // Labels only, from the PUBLISHED POLICY document. `{}` until it loads and `{}` if it fails — a
+  // missing label costs a line of context, and must never stop a consent surface rendering.
+  const elements = usePolicyElements();
 
   return (
     <div className="space-y-5">
@@ -90,7 +96,7 @@ function ConsentCentreLive({ source }: { source: string }) {
               Only the subject's own value would ever be the host's to supply, and this demo has
               none to give — so the panel shows the label alone, which is correct rather than
               invented. */}
-          <ConsentPreferences source={source} elements={policyElements()} />
+          <ConsentPreferences source={source} elements={elements} />
         </div>
 
         {/* Reference material, so it reads AFTER the decisions rather than competing with them for

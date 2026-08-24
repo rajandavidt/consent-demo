@@ -13,7 +13,7 @@ export * from './auth/AuthProvider.js';
 export * from './consent/ConsentCentre.js';
 export * from './consent/CollectionPointConsent.js';
 export * from './consent/config.js';
-export * from './consent/live-manager.js';
+export * from './consent/policy-elements.js';
 export * from './consent/AkkuProvider.js';
 
 // Onboarding steps shared by both apps. The OTP logic is identical for a bank and an insurer, so it
