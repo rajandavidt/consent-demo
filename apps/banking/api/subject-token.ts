@@ -157,14 +157,29 @@ export default function handler(req: Req, res: Res): void {
   // neither the step nor the likely cause, so there was nothing to act on. Neither message echoes
   // the key or OpenSSL's text — an unusable key is a deployment fault, and this response reaches a
   // browser console.
+  // NAMES WHAT IT ACTUALLY GOT. The generic "could not be parsed" was still a dead end in practice,
+  // because Vercel marks a secret variable Sensitive and then refuses to show it back — so an
+  // operator cannot check what they pasted. The console has a guard in the same spirit for the
+  // opposite mistake ("This looks like a PRIVATE key"); this is that guard pointing the other way.
+  //
+  // Reporting the KIND of key and the character count leaks nothing: both are properties of the
+  // wrapper, not of the key material, and neither narrows a 256-bit secret. The bytes are never
+  // echoed.
+  const looksPublic = /BEGIN(?: [A-Z]+)? PUBLIC KEY/.test(privateKeyPem);
   let key;
   try {
     key = createPrivateKey({ key: normalizePem(privateKeyPem), format: 'pem' });
   } catch {
     res.status(500).json({
-      error:
-        'AKKU_APP_PRIVATE_KEY could not be parsed as a private key. It must be the whole PEM, ' +
-        'including the BEGIN and END lines. Check it is the PRIVATE half, not the public one.',
+      error: looksPublic
+        ? 'AKKU_APP_PRIVATE_KEY contains a PUBLIC key. It needs the private half — the file whose ' +
+          'first line reads "-----BEGIN PRIVATE KEY-----". The public half belongs in the Akku ' +
+          'console, not here.'
+        : 'AKKU_APP_PRIVATE_KEY could not be parsed as a private key. It must be the whole PEM, ' +
+          'including the BEGIN and END lines. Got ' +
+          String(privateKeyPem.trim().length) +
+          ' characters; a PKCS8 Ed25519 key is about 119, so a much smaller number means it was ' +
+          'truncated on paste.',
     });
     return;
   }
