@@ -20,6 +20,7 @@ import {
   Send,
 } from 'lucide-react';
 import {
+  AmbientConsentAsk,
   KEYS,
   read,
   formatInr,
@@ -62,6 +63,12 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* Analytics and personalisation have no moment of collection — nobody ever enters their
+          device data — so they were published, prompted nowhere, and answerable only by a
+          visitor who went looking in the preference centre. Asked here instead, on a screen
+          they are already on. One at a time, and ignoring it records nothing. */}
+      <AmbientConsentAsk element="device" source="dashboard" />
+
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
