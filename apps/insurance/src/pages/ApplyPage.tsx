@@ -27,6 +27,7 @@ import {
 import {
   Button,
   Checkbox,
+  CollectionPointConsent,
   Field,
   InfoBanner,
   KEYS,
@@ -350,6 +351,16 @@ export default function ApplyPage() {
               <p className="mt-1 text-xs text-slate-500">
                 This is the only information insurance needs that banking never asked for.
               </p>
+
+              {/* Asked here, not on the bank KYC steps: the health element is only ever
+                  collected at this stage, and underwriting is the purpose it is collected for. */}
+              <div className="mt-4">
+                <CollectionPointConsent
+                  element="health"
+                  source="insurance-apply-health"
+                  title="Before you answer these health questions"
+                />
+              </div>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 <Field
                   label="Height (cm)"

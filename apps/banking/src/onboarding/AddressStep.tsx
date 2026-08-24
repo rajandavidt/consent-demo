@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
 import {
   useAuth,
+  CollectionPointConsent,
   Button,
   Checkbox,
   Field,
@@ -175,6 +176,13 @@ export default function AddressStep() {
         </Button>
       }
     >
+      {/* Disclosed and asked from the PUBLISHED policy. Renders nothing while the policy
+          attaches no consent purpose to this field, and starts asking the moment it does. */}
+      <CollectionPointConsent
+        element="address"
+        source="onboarding-address"
+        title="Before you add your address"
+      />
       <div className="space-y-7">
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-3">

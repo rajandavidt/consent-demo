@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   useAuth,
+  CollectionPointConsent,
   Button,
   Field,
   InfoBanner,
@@ -115,6 +116,13 @@ export default function PersonalStep() {
         </Button>
       }
     >
+      {/* Disclosed and asked from the PUBLISHED policy. Renders nothing while the policy
+          attaches no consent purpose to this field, and starts asking the moment it does. */}
+      <CollectionPointConsent
+        element="personal"
+        source="onboarding-personal"
+        title="Before you add your personal details"
+      />
       <div className="space-y-6">
         {kyc?.pan?.nameOnPan && (
           <InfoBanner>

@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { Download, Eye, FileText, Trash2, Upload } from 'lucide-react';
 import {
   useAuth,
+  CollectionPointConsent,
   Button,
   InfoBanner,
   KEYS,
@@ -167,6 +168,13 @@ export default function DocumentsStep({ standalone = false }: { standalone?: boo
         </Button>
       }
     >
+      {/* Disclosed and asked from the PUBLISHED policy. Renders nothing while the policy
+          attaches no consent purpose to this field, and starts asking the moment it does. */}
+      <CollectionPointConsent
+        element="identity"
+        source="onboarding-documents"
+        title="Before you upload your documents"
+      />
       <div className="space-y-4">
         <InfoBanner tone="warning">
           <strong>No file leaves this browser.</strong> This demo records the name, size and type of

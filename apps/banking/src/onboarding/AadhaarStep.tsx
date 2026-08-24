@@ -20,6 +20,7 @@ import { BadgeCheck, Loader2, ShieldCheck } from 'lucide-react';
 import {
   useAuth,
   Button,
+  CollectionPointConsent,
   Field,
   InfoBanner,
   OtpInput,
@@ -96,6 +97,14 @@ export default function AadhaarStep() {
         ) : undefined
       }
     >
+      {/* Shown on landing, before a digit is typed: what this Aadhaar is used for, disclosed
+          and asked from the PUBLISHED policy. Returns null once answered, so it never nags. */}
+      <CollectionPointConsent
+        element="identity"
+        source="onboarding-aadhaar"
+        title="Before you add your Aadhaar"
+      />
+
       {phase === 'capture' && (
         <div className="max-w-md space-y-5">
           <Field

@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { Pencil, Plus, Trash2, Users } from 'lucide-react';
 import {
   useAuth,
+  CollectionPointConsent,
   Button,
   Field,
   InfoBanner,
@@ -174,6 +175,13 @@ export default function NomineeStep({ standalone = false }: { standalone?: boole
         </Button>
       }
     >
+      {/* Disclosed and asked from the PUBLISHED policy. Renders nothing while the policy
+          attaches no consent purpose to this field, and starts asking the moment it does. */}
+      <CollectionPointConsent
+        element="nominee"
+        source="onboarding-nominee"
+        title="Before you add your nominee"
+      />
       <div className="space-y-5">
         {nominees.length === 0 && !formOpen && (
           <div className="rounded-control border border-dashed border-border-strong px-6 py-10 text-center">
