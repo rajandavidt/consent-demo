@@ -76,6 +76,38 @@ function resolveSubject(body: unknown): string | null {
   return typeof claimed === 'string' && claimed.trim().length > 0 ? claimed.trim() : null;
 }
 
+/**
+ * Repairs a PEM whose line breaks were lost in transit.
+ *
+ * An env-var UI is a single-line text box. Pasting a PEM into one routinely arrives with the
+ * newlines stripped, or turned into the two characters backslash-n, and OpenSSL then refuses the
+ * whole thing with `DECODER routines::unsupported` — which says nothing about the real cause. The
+ * key material is intact in every one of those cases; only the formatting is not.
+ *
+ * So this rebuilds the wrapping rather than making an operator fight their hosting provider's text
+ * box. It does NOT change, pad or infer any key BYTES: it takes exactly the base64 between the BEGIN
+ * and END markers and re-wraps it at 64 characters, which is what PEM requires. A genuinely wrong
+ * key still fails to parse below, as it should.
+ */
+function normalizePem(raw: string): string {
+  const LF = String.fromCharCode(10);
+  const LITERAL_NEWLINE = String.fromCharCode(92) + 'n';
+  // Literal backslash-n, the most common form of the damage.
+  const withNewlines = raw.includes(LITERAL_NEWLINE) ? raw.split(LITERAL_NEWLINE).join(LF) : raw;
+  if (withNewlines.includes(LF)) return withNewlines.trim();
+
+  const begin = withNewlines.indexOf('-----BEGIN');
+  const end = withNewlines.indexOf('-----END');
+  if (begin === -1 || end === -1) return withNewlines.trim();
+
+  const headerEnd = withNewlines.indexOf('-----', begin + 5) + 5;
+  const header = withNewlines.slice(begin, headerEnd);
+  const footer = withNewlines.slice(end, withNewlines.indexOf('-----', end + 5) + 5);
+  const body = withNewlines.slice(headerEnd, end).replace(/\s+/g, '');
+  const wrapped = body.match(/.{1,64}/g)?.join(LF) ?? body;
+  return header + LF + wrapped + LF + footer;
+}
+
 export default function handler(req: Req, res: Res): void {
   if (req.method !== 'POST') {
     // GET is refused deliberately: a token in a URL ends up in logs, history and referrers.
@@ -120,15 +152,29 @@ export default function handler(req: Req, res: Res): void {
   };
 
   const signingInput = `${base64url(JSON.stringify(header))}.${base64url(JSON.stringify(payload))}`;
+  // The two failures are reported SEPARATELY. "could not be signed" covering both was a real cost:
+  // the first deploy failed on a PEM whose newlines the env-var box had eaten, and the message named
+  // neither the step nor the likely cause, so there was nothing to act on. Neither message echoes
+  // the key or OpenSSL's text — an unusable key is a deployment fault, and this response reaches a
+  // browser console.
+  let key;
+  try {
+    key = createPrivateKey({ key: normalizePem(privateKeyPem), format: 'pem' });
+  } catch {
+    res.status(500).json({
+      error:
+        'AKKU_APP_PRIVATE_KEY could not be parsed as a private key. It must be the whole PEM, ' +
+        'including the BEGIN and END lines. Check it is the PRIVATE half, not the public one.',
+    });
+    return;
+  }
+
   let token: string;
   try {
-    const key = createPrivateKey({ key: privateKeyPem, format: 'pem' });
     // `algorithm` MUST be null for an Ed25519 key — the key itself carries the algorithm.
     const signature = cryptoSign(null, Buffer.from(signingInput, 'ascii'), key);
-    token = `${signingInput}.${base64url(signature)}`;
+    token = signingInput + '.' + base64url(signature);
   } catch {
-    // Never echo the key or the failure detail: an unusable key is a deployment fault, and the
-    // message would end up in a browser console.
     res.status(500).json({ error: 'subject token could not be signed' });
     return;
   }
