@@ -89,7 +89,7 @@ function resolveSubject(body: unknown): string | null {
  * and END markers and re-wraps it at 64 characters, which is what PEM requires. A genuinely wrong
  * key still fails to parse below, as it should.
  */
-function normalizePem(raw: string): string {
+function normalizePem(raw: string, label: string): string {
   const LF = String.fromCharCode(10);
   const LITERAL_NEWLINE = String.fromCharCode(92) + 'n';
   // Literal backslash-n, the most common form of the damage.
@@ -98,7 +98,16 @@ function normalizePem(raw: string): string {
 
   const begin = withNewlines.indexOf('-----BEGIN');
   const end = withNewlines.indexOf('-----END');
-  if (begin === -1 || end === -1) return withNewlines.trim();
+  // NO MARKERS AT ALL — just the base64 body. A three-line PEM pasted into a one-line text box
+  // invites copying only the middle line, and that is exactly what arrives: 64 characters where a
+  // PKCS8 Ed25519 key is about 119. The bytes are all there; the wrapper is not. Put it back rather
+  // than send the operator round again for the third time.
+  if (begin === -1 || end === -1) {
+    const body = withNewlines.replace(/\s+/g, '');
+    if (body.length === 0) return withNewlines.trim();
+    const wrappedBody = body.match(/.{1,64}/g)?.join(LF) ?? body;
+    return '-----BEGIN ' + label + '-----' + LF + wrappedBody + LF + '-----END ' + label + '-----';
+  }
 
   const headerEnd = withNewlines.indexOf('-----', begin + 5) + 5;
   const header = withNewlines.slice(begin, headerEnd);
@@ -168,7 +177,7 @@ export default function handler(req: Req, res: Res): void {
   const looksPublic = /BEGIN(?: [A-Z]+)? PUBLIC KEY/.test(privateKeyPem);
   let key;
   try {
-    key = createPrivateKey({ key: normalizePem(privateKeyPem), format: 'pem' });
+    key = createPrivateKey({ key: normalizePem(privateKeyPem, 'PRIVATE KEY'), format: 'pem' });
   } catch {
     res.status(500).json({
       error: looksPublic
