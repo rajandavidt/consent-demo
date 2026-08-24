@@ -19,5 +19,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts"]
+  // `api/` runs on Vercel's Node runtime, not in the browser, so it belongs here rather than in
+  // tsconfig.app.json — it needs node types and must NOT get the DOM lib.
+  "include": ["vite.config.ts", "api"]
 }
