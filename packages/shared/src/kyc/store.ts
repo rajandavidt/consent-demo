@@ -7,7 +7,7 @@
 // EVERY MUTATION IS AUDITED. Requirement 18 lists finsecure_audit_logs, and a KYC record without a
 // trail of who changed what is not a KYC record. The log is append-only in spirit — nothing here
 // edits or removes an entry.
-import { KEYS, nowIso, read, update, type StoreKey } from '../storage/index.js';
+import { KEYS, nowIso, read, update, write, type StoreKey } from '../storage/index.js';
 import {
   STEP_SEQUENCE,
   type KycRecord,
@@ -118,6 +118,34 @@ export function audit(userId: string, action: string, detail: string): void {
 export function readAudit(userId?: string): AuditEntry[] {
   const all = read<AuditEntry[]>(KEYS.auditLogs, []);
   return userId ? all.filter((entry) => entry.userId === userId) : all;
+}
+
+/**
+ * Puts ONE user back to the start of verification, without touching anything else.
+ *
+ * Separate from `resetAll()` on purpose. That wipes every store including the session and the
+ * seeded users, so it ends the demo and drops you at the login screen -- fine for a clean slate,
+ * useless for walking the KYC flow twice in a row. This keeps you signed in, keeps accounts and
+ * transactions, and only rewinds what the verification steps own: the step statuses, the uploaded
+ * documents, the nominees, and any OTP still in flight.
+ *
+ * It also clears the LOCAL consent provenance for this subject, which is what makes the
+ * collection-point modals ask again. The DECISIONS themselves are not deleted and cannot be: the
+ * ledger is append-only by database grant, and a withdrawal is a new event rather than an erasure.
+ * Dropping the provenance means `promptDecision` no longer knows which policy version the answer
+ * was given under, so it resolves to `re-confirm` -- the safe direction, since it asks again
+ * rather than assuming consent. Every previous decision stays visible in the admin console, which
+ * is the honest record of what happened.
+ */
+export function resetVerification(userId: string): void {
+  update<KycStoreShape>(KEYS.kyc, {}, (all) => ({ ...all, [userId]: emptyRecord(userId) }));
+  write(KEYS.documents, []);
+  write(KEYS.nominees, []);
+  write(KEYS.otp, {});
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem(`finsecure_consent_provenance:${userId}`);
+  }
+  audit(userId, 'verification.reset', 'Verification steps reset for testing.');
 }
 
 /** Re-export so app code can subscribe without importing two modules. */

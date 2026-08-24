@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  ListRestart,
   RotateCcw,
   ScrollText,
   ShieldCheck,
@@ -24,7 +25,14 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { completedCount, overallStatus, resetAll, STEP_SEQUENCE, useAuth } from '@finsecure/shared';
+import {
+  completedCount,
+  overallStatus,
+  resetAll,
+  resetVerification,
+  STEP_SEQUENCE,
+  useAuth,
+} from '@finsecure/shared';
 
 const NAV = [
   { label: 'Overview', to: '/dashboard', icon: LayoutDashboard },
@@ -38,7 +46,7 @@ const NAV = [
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { user, kyc, signOut } = useAuth();
+  const { user, kyc, signOut, refresh } = useAuth();
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -117,6 +125,20 @@ export function AppShell({ children }: { children: ReactNode }) {
         {brand}
         {nav}
         <div className="border-t border-white/[0.07] p-3">
+          <button
+            type="button"
+            onClick={() => {
+              if (user) {
+                resetVerification(user.id);
+                refresh();
+                window.location.reload();
+              }
+            }}
+            className="focus-ring press flex min-h-11 w-full items-center gap-3 rounded-control px-3 text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white"
+          >
+            <ListRestart className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden />
+            Reset verification
+          </button>
           <button
             type="button"
             onClick={() => {
