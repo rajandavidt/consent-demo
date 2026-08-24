@@ -20,7 +20,7 @@
 //     is what lets the SDK tell "decided under the current policy" from "decided under a superseded
 //     one", and its absence is why this app used to keep a localStorage cache and re-ask on every
 //     load. That cache is gone with it.
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { ConsentManager } from '@akku-work/consent-auth';
 import { ConsentProvider } from '@akku-work/consent-auth/react';
@@ -37,11 +37,15 @@ import { AKKU_CONFIG, AKKU_CONFIGURED } from './config.js';
  * header for the one function a real host must replace: this demo has no real session, so that
  * endpoint trusts the id sent to it.
  */
-async function fetchSubjectToken(subjectId: string): Promise<string> {
+async function fetchSubjectToken(identity: {
+  subjectId: string;
+  name: string;
+  email: string;
+}): Promise<string> {
   const response = await fetch('/api/subject-token', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ subjectId }),
+    body: JSON.stringify(identity),
     // A short-lived credential must never come from a cache.
     cache: 'no-store',
   });
@@ -62,7 +66,15 @@ async function fetchSubjectToken(subjectId: string): Promise<string> {
 }
 
 export function AkkuProvider({ children }: { children: ReactNode }) {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
+
+  // WHY A REF AND NOT A DEPENDENCY. The manager is keyed on the subject alone, so it survives a
+  // re-render — rebuilding it would drop the SDK's in-flight read and re-fire it. But the token is
+  // minted fresh before every request, and it must carry the identity as it is NOW, not as it was
+  // when the manager happened to be built. A ref gives the callback the current value without making
+  // the manager's identity depend on it.
+  const identity = useRef({ name: '', email: '' });
+  identity.current = { name: user?.name ?? '', email: session?.email ?? '' };
 
   const manager = useMemo(() => {
     if (!AKKU_CONFIGURED || !session?.userId) return null;
@@ -71,7 +83,16 @@ export function AkkuProvider({ children }: { children: ReactNode }) {
       apiHost: AKKU_CONFIG.apiHost,
       siteKey: AKKU_CONFIG.siteKey,
       applicationId: AKKU_CONFIG.appId,
-      getSubjectToken: () => fetchSubjectToken(subjectId),
+      // The name and email are sent to OUR endpoint, which signs them into the token's `attrs`
+      // claim. They are deliberately not part of the consent payload: the authenticated plane reads
+      // attributes from the verified token and never from the body, so a browser cannot put one
+      // person's name against another person's consent.
+      getSubjectToken: () =>
+        fetchSubjectToken({
+          subjectId,
+          name: identity.current.name,
+          email: identity.current.email,
+        }),
     });
   }, [session?.userId]);
 

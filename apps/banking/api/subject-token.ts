@@ -27,7 +27,9 @@
 //
 // This demo has NO real authentication. Its "login" compares plaintext passwords held in
 // localStorage, in the browser (packages/shared/src/auth/auth.ts). There is therefore nothing here
-// for this endpoint to verify, and it mints a token for whichever subject the caller names.
+// for this endpoint to verify, and it mints a token for whichever subject the caller names —
+// and signs whatever NAME and EMAIL it is handed alongside. A real host reads all three from
+// its own session, together, and never takes any of them from the request.
 //
 // So this endpoint does NOT make the demo secure. It moves the trust boundary to the right place and
 // demonstrates the correct SHAPE, which is what a reference implementation is for. A real host puts
@@ -74,6 +76,48 @@ function base64url(input: Buffer | string): string {
 function resolveSubject(body: unknown): string | null {
   const claimed = (body as { subjectId?: unknown } | null)?.subjectId;
   return typeof claimed === 'string' && claimed.trim().length > 0 ? claimed.trim() : null;
+}
+
+/** One attribute describing the subject, exactly as Akku's `attrs` claim expects. */
+interface SubjectAttribute {
+  key: string;
+  value: string;
+}
+
+/** Akku's caps (services/ledger/subject-attributes.ts). Enforced here so a long value is trimmed
+ *  rather than silently discarding the whole bag — see the note in resolveAttributes. */
+const MAX_ATTRS = 10;
+const MAX_VALUE_LENGTH = 256;
+
+/**
+ * The identity that travels WITH the consent, as the token's signed `attrs` claim.
+ *
+ * WHY IN THE TOKEN AND NOT THE CONSENT PAYLOAD. The authenticated plane reads attributes from the
+ * verified token and never from the request body — routes/authed/consent.ts says so in as many
+ * words: "the token's signed attrs, forwarded verbatim — never read from the body". If the browser
+ * could put a name in the payload it could put ANY name against any consent, and the console would
+ * show it as fact. Signing them here is the whole point.
+ *
+ * KEYS REUSE WHAT IS ALREADY IN THE LEDGER — `user_name`, `email`, `customer_id`. Akku normalises
+ * keys (lowercase, spaces to underscores) precisely so one site cannot end up with `user_name` and
+ * `User Name` as two different labels, so matching the existing vocabulary is not cosmetic.
+ *
+ * MISSING VALUES ARE OMITTED, NEVER SENT EMPTY. `normalizeAttrs` discards the WHOLE bag if one
+ * entry is malformed — deliberately, because a half-applied identity is worse than none. So an
+ * absent name must not become `{ key: 'user_name', value: undefined }`, or the email would vanish
+ * with it. Only real, non-empty strings are included.
+ */
+function resolveAttributes(body: unknown, subject: string): SubjectAttribute[] {
+  const claimed = (body ?? {}) as { name?: unknown; email?: unknown };
+  const candidates: SubjectAttribute[] = [
+    { key: 'user_name', value: typeof claimed.name === 'string' ? claimed.name.trim() : '' },
+    { key: 'email', value: typeof claimed.email === 'string' ? claimed.email.trim() : '' },
+    { key: 'customer_id', value: subject },
+  ];
+  return candidates
+    .filter((attribute) => attribute.value.length > 0)
+    .map((attribute) => ({ key: attribute.key, value: attribute.value.slice(0, MAX_VALUE_LENGTH) }))
+    .slice(0, MAX_ATTRS);
 }
 
 /**
@@ -146,6 +190,7 @@ export default function handler(req: Req, res: Res): void {
     return;
   }
 
+  const attrs = resolveAttributes(req.body, subject);
   const issuedAt = Math.floor(Date.now() / 1000);
   const header = { alg: 'EdDSA', typ: 'JWT' };
   const payload = {
@@ -158,6 +203,10 @@ export default function handler(req: Req, res: Res): void {
     // `iat` is REQUIRED by the verifier, not optional: the max-lifetime cap is computed as
     // `exp - iat`, so omitting it would skip the cap rather than default it.
     exp: issuedAt + LIFETIME_SECONDS,
+    // Omitted entirely when there is nothing to say, rather than sent as an empty array: "no
+    // identity was supplied" and "an identity was supplied and it was empty" are different, and only
+    // the first is true here.
+    ...(attrs.length > 0 ? { attrs } : {}),
   };
 
   const signingInput = `${base64url(JSON.stringify(header))}.${base64url(JSON.stringify(payload))}`;
