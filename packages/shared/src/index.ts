@@ -14,6 +14,7 @@ export * from './consent/ConsentCentre.js';
 export * from './consent/CollectionPointConsent.js';
 export * from './consent/AmbientConsentAsk.js';
 export * from './consent/config.js';
+export * from './consent/subject-identity.js';
 export * from './consent/policy-elements.js';
 export * from './consent/AkkuProvider.js';
 

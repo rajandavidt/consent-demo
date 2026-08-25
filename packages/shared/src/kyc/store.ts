@@ -142,9 +142,6 @@ export function resetVerification(userId: string): void {
   write(KEYS.documents, []);
   write(KEYS.nominees, []);
   write(KEYS.otp, {});
-  if (typeof window !== 'undefined') {
-    window.localStorage.removeItem(`finsecure_consent_provenance:${userId}`);
-  }
   audit(userId, 'verification.reset', 'Verification steps reset for testing.');
 }
 

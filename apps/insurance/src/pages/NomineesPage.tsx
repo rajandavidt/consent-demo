@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 import { Users } from 'lucide-react';
 import { InfoBanner, KEYS, maskMobile, read, useAuth } from '@finsecure/shared';
+import { bankingLink } from '../config';
 
 interface Nominee {
   id: string;
@@ -44,7 +45,7 @@ export default function NomineesPage() {
             Add them once in FinSecure Bank and they appear here automatically.
           </p>
           <a
-            href="http://localhost:5200/nominees"
+            href={bankingLink('/nominees')}
             className="focus-ring press mt-4 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
           >
             Manage nominees in FinSecure Bank →

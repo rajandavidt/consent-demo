@@ -16,12 +16,25 @@
 // sequence makes it feel like nagging. The first pending one is asked, the rest wait for another
 // visit. Closing records nothing, so nothing is inferred from being ignored — the SDK's rule, kept.
 import { AskSnackbar, useConsent } from '@akku-work/consent-auth/react';
+import { AKKU_CONFIGURED } from './config.js';
 
-export function AmbientConsentAsk({
+export function AmbientConsentAsk(props: {
+  /** The policy's element key — `device`. Its purposes are looked up, never listed here. */
+  element: string;
+  source: string;
+}) {
+  // GUARDED BEFORE THE HOOK — the same reason as CollectionPointConsent, and the same fix. `useConsent`
+  // throws outside a ConsentProvider, AkkuProvider mounts none on an unconfigured build, and an
+  // unguarded throw here takes down whatever screen this snackbar happens to sit on — the dashboard.
+  // Rule #1: a consent surface is never what breaks the page.
+  if (!AKKU_CONFIGURED) return null;
+  return <AmbientConsentAskLive {...props} />;
+}
+
+function AmbientConsentAskLive({
   element,
   source,
 }: {
-  /** The policy's element key — `device`. Its purposes are looked up, never listed here. */
   element: string;
   source: string;
 }) {

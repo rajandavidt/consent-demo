@@ -44,6 +44,7 @@ import {
   useToast,
   write,
 } from '@finsecure/shared';
+import { bankingLink } from '../config';
 
 type Stage = 'cover' | 'kyc' | 'health' | 'nominee' | 'review';
 
@@ -212,7 +213,7 @@ export default function ApplyPage() {
                 <StatusBadge status={overallStatus(kyc)} />
               </p>
               <a
-                href="http://localhost:5200/kyc"
+                href={bankingLink('/kyc')}
                 className="focus-ring press mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
               >
                 Complete KYC in FinSecure Bank

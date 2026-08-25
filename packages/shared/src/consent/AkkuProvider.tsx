@@ -26,6 +26,7 @@ import { ConsentManager } from '@akku-work/consent-auth';
 import { ConsentProvider } from '@akku-work/consent-auth/react';
 import { useAuth } from '../auth/AuthProvider.js';
 import { AKKU_CONFIG, AKKU_CONFIGURED } from './config.js';
+import { consentSubjectId } from './subject-identity.js';
 
 /**
  * Fetches a Subject Token for this user from our own server.
@@ -76,9 +77,15 @@ export function AkkuProvider({ children }: { children: ReactNode }) {
   const identity = useRef({ name: '', email: '' });
   identity.current = { name: user?.name ?? '', email: session?.email ?? '' };
 
+  // THE CONSENT SUBJECT, WHICH IS NOT THE USER ID. `consentSubjectId` appends a round marker that the
+  // "reset consent" action bumps — a different `sub` derives a different subject server-side, which is
+  // the only way to return a demo to "nothing decided yet" without deleting ledger rows that are not
+  // deletable. Round 0 returns the user id unchanged, so nothing about an existing demo moves until
+  // somebody asks for it. See consent/subject-identity.ts.
+  const subjectId = session ? consentSubjectId(session.userId) : '';
+
   const manager = useMemo(() => {
-    if (!AKKU_CONFIGURED || !session?.userId) return null;
-    const subjectId = session.userId;
+    if (!AKKU_CONFIGURED || !session?.userId || subjectId.length === 0) return null;
     return new ConsentManager({
       apiHost: AKKU_CONFIG.apiHost,
       siteKey: AKKU_CONFIG.siteKey,
@@ -94,7 +101,9 @@ export function AkkuProvider({ children }: { children: ReactNode }) {
           email: identity.current.email,
         }),
     });
-  }, [session?.userId]);
+    // Keyed on the SUBJECT, not the user id: a reset changes only the subject, and a manager keyed on
+    // the user id would keep reading the previous subject's decisions after one.
+  }, [subjectId]);
 
   // Children render untouched when there is no subject or no configuration: every consent surface in
   // these apps lives behind login, and mounting a provider without either fires a read that can only

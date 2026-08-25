@@ -22,6 +22,7 @@ import {
   RotateCcw,
   Send,
   ShieldCheck,
+  ShieldOff,
   UserRound,
   Users,
   X,
@@ -31,6 +32,8 @@ import {
   overallStatus,
   resetAll,
   resetVerification,
+  resetConsentIdentity,
+  consentIdentityRound,
   STEP_SEQUENCE,
   useAuth,
 } from '@finsecure/shared';
@@ -143,6 +146,32 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <ListRestart className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden />
             Reset verification
+          </button>
+          {/* RESET CONSENT — a fresh consent subject, and nothing deleted.
+              A decision cannot be un-made: consent_events is append-only and the runtime role holds no
+              DELETE grant, because the record IS the evidence somebody consented. So this presents a
+              NEW `sub` instead, which derives a new subject server-side with no history — every purpose
+              returns to "needs a decision" and every collection point speaks up again.
+              A full reload rather than a state refresh: the provider reads the round from storage
+              non-reactively, and re-entering the router from a clean state is simpler than teaching one
+              more store to publish. Same reasoning as Reset verification directly above. */}
+          <button
+            type="button"
+            onClick={() => {
+              if (user) {
+                resetConsentIdentity(user.id);
+                window.location.reload();
+              }
+            }}
+            title={
+              user
+                ? `Presents a new consent subject. Round ${String(consentIdentityRound(user.id) + 1)}. Nothing is deleted.`
+                : undefined
+            }
+            className="focus-ring press flex min-h-11 w-full items-center gap-3 rounded-control px-3 text-sm font-medium text-slate-400 hover:bg-white/5 hover:text-white"
+          >
+            <ShieldOff className="h-[18px] w-[18px]" strokeWidth={1.75} aria-hidden />
+            Reset consent
           </button>
           <button
             type="button"

@@ -16,6 +16,7 @@ import {
   read,
   useAuth,
 } from '@finsecure/shared';
+import { bankingLink } from '../config';
 
 interface Policy {
   id: string;
@@ -114,7 +115,7 @@ export default function DashboardPage() {
             </p>
             {!ready && (
               <a
-                href="http://localhost:5200/kyc"
+                href={bankingLink('/kyc')}
                 className="focus-ring press mt-3 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
               >
                 Continue KYC in FinSecure Bank →

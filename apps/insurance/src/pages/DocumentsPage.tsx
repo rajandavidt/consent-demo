@@ -6,6 +6,7 @@
 import { useMemo } from 'react';
 import { FileText, Upload } from 'lucide-react';
 import { InfoBanner, KEYS, StatusBadge, read, useAuth, type VerificationStatus } from '@finsecure/shared';
+import { bankingLink } from '../config';
 
 interface StoredDoc {
   userId: string;
@@ -52,7 +53,7 @@ export default function DocumentsPage() {
             uploading twice.
           </p>
           <a
-            href="http://localhost:5200/documents"
+            href={bankingLink('/documents')}
             className="focus-ring press mt-4 inline-flex min-h-11 items-center rounded-control bg-brand-600 px-4 text-sm font-semibold text-white hover:bg-brand-700"
           >
             Upload in FinSecure Bank →

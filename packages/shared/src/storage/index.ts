@@ -1,6 +1,6 @@
 // packages/shared/src/storage/index.ts — the only place this platform touches localStorage.
 //
-// WHY A LAYER AND NOT DIRECT CALLS. Two applications read and write the same twelve stores, and
+// WHY A LAYER AND NOT DIRECT CALLS. Two applications read and write the same thirteen stores, and
 // requirement 12 says the insurance app must not re-ask for KYC the customer already gave banking.
 // That only holds if both apps agree, byte for byte, on the key names and the record shapes — so
 // they are declared once, here, and neither app is allowed a `localStorage.getItem` of its own.
@@ -13,7 +13,7 @@
 // EVERYTHING HERE IS DEMO DATA. No value in any of these stores came from a real bank, a real
 // registry or a real person, and nothing leaves the browser.
 
-/** The twelve stores. Named exactly as specified so the demo's devtools view is predictable. */
+/** The thirteen stores. Named exactly as specified so the demo's devtools view is predictable. */
 export const KEYS = {
   users: 'finsecure_users',
   session: 'finsecure_session',
@@ -27,6 +27,18 @@ export const KEYS = {
   claims: 'finsecure_claims',
   consents: 'finsecure_consents',
   auditLogs: 'finsecure_audit_logs',
+  /**
+   * Which CONSENT identity this browser is currently presenting, per demo user.
+   *
+   * Separate from `session` on purpose. The consent subject is derived server-side from the token's
+   * `sub`, so presenting a new `sub` yields a brand-new subject with no consent history — which is
+   * the only honest way to "reset consent" for a demo. The ledger is append-only and a recorded
+   * decision is not something you un-record.
+   *
+   * It is NOT the user id, and must not be, or resetting consent would orphan that customer's
+   * accounts, KYC and policies too. See consent/subject-identity.ts.
+   */
+  consentIdentity: 'finsecure_consent_identity',
 } as const;
 
 export type StoreKey = (typeof KEYS)[keyof typeof KEYS];
