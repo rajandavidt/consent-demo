@@ -78,11 +78,25 @@ export const DEMO_USERS: User[] = [
   },
 ];
 
-/** Seeds the demo accounts once. Existing users are left alone so a registration survives a reload. */
+/**
+ * Ensures every demo account exists, without disturbing the ones already there.
+ *
+ * MERGES BY EMAIL rather than bailing out on the first existing row, and that is the whole fix. The
+ * old version returned early whenever the store held ANY user — so a browser that had opened the app
+ * before a demo account was added never received it, while the sign-in screen kept listing it: the
+ * screen renders DEMO_USERS (this constant) but `login()` checks the STORE. Three of the five
+ * accounts were offered as click-to-fill rows and then rejected with "Email address or password is
+ * incorrect", which reads as a broken login rather than a stale store.
+ *
+ * Existing rows are never touched — a registration survives, and so does a password somebody changed
+ * on a demo account. Only genuinely absent emails are appended.
+ */
 export function seedUsers(): void {
   const existing = read<User[]>(KEYS.users, []);
-  if (existing.length > 0) return;
-  write(KEYS.users, DEMO_USERS);
+  const present = new Set(existing.map((user) => user.email.toLowerCase()));
+  const missing = DEMO_USERS.filter((user) => !present.has(user.email.toLowerCase()));
+  if (missing.length === 0) return;
+  write(KEYS.users, [...existing, ...missing]);
 }
 
 export function listUsers(): User[] {
