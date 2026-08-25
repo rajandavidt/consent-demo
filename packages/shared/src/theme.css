@@ -503,7 +503,21 @@
   }
 }
 .reveal {
-  animation: reveal var(--duration-base) var(--ease-out-quart) both;
+  /* NO `both`, AND THAT MATTERS FOR MORE THAN THE ANIMATION.
+   *
+   * `animation-fill-mode: both` retains the final keyframe, and this keyframe's final state is
+   * `transform: translateY(0)` — still a transform. A transformed element becomes the CONTAINING
+   * BLOCK for its `position: fixed` descendants, so every fixed overlay rendered inside it sizes
+   * itself to that element instead of to the viewport.
+   *
+   * `<main>` carries this class for the route transition, and the SDK's consent modal renders inside
+   * the page. So the scrim covered the content area only: the sidebar and the header stayed bright,
+   * and the dialog looked like it was floating in a half-dimmed page. Nothing was wrong with the
+   * scrim — `inset: 0` was resolving against the wrong box.
+   *
+   * With no fill-mode the from-state still applies on the first frame (there is no delay to cover),
+   * so the entrance is unchanged and no transform survives it. */
+  animation: reveal var(--duration-base) var(--ease-out-quart);
 }
 /* The same entrance for a full panel or banner, which needs the longer duration and a little more
  * travel — a 3px slide on a 200px-tall block is not perceptible as movement at all. */
@@ -518,7 +532,9 @@
   }
 }
 .reveal-block {
-  animation: reveal-block var(--duration-slow) var(--ease-out-quart) both;
+  /* Same reasoning as `.reveal` above: no `both`, so no transform is left behind to capture a fixed
+   * overlay. This class is used on panels that themselves contain consent surfaces. */
+  animation: reveal-block var(--duration-slow) var(--ease-out-quart);
 }
 
 /* A rejected value: wrong OTP, failed credentials.

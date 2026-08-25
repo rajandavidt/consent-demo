@@ -8,6 +8,7 @@
 // hand-rolled block would get wrong: it separates what is DISCLOSED (necessary, legal obligation)
 // from what is ASKED (consent), and it returns null once there is nothing left to ask. So this
 // appears the first time someone reaches the step and never nags them again.
+import { useState } from 'react';
 import { DisclosureModal, useConsent } from '@akku-work/consent-auth/react';
 import { AKKU_CONFIGURED } from './config.js';
 
@@ -58,6 +59,8 @@ function CollectionPointConsentLive({
   // `mktg_2024` against the email element. Parsing the string would work on this policy and silently
   // mis-group the next one.
   const { states } = useConsent();
+  // Declared before every early return below: a hook cannot be called conditionally.
+  const [dismissed, setDismissed] = useState(false);
   if (states === undefined) return null;
 
   const purposeKeys = states
@@ -69,15 +72,32 @@ function CollectionPointConsentLive({
   // be worse than silence.
   if (purposeKeys.length === 0) return null;
 
+  // DISMISSAL IS ALWAYS WIRED, and it has to be.
+  //
+  // These handlers used to be spread in ONLY when the host passed `onDone` — and no call site ever
+  // did, at any of the nine collection points across both apps. So `onDismiss` was undefined,
+  // DisclosureModal's decline handler resolved to `() => undefined`, and both "Decide later" and the
+  // scrim were INERT: the only way out of the dialog was to answer it. A consent surface that cannot
+  // be closed without answering is coercion, which is the opposite of what it exists to do.
+  //
+  // Local state, so it works with or without a host callback. Dismissing records NOTHING — walking
+  // away is not an answer either way (Rule #5), and the surface simply returns on the next visit
+  // because the purpose is still undecided.
+  if (dismissed) return null;
+
   return (
     <DisclosureModal
       purposeKeys={purposeKeys}
       source={source}
       title={title}
-      // Conditionally spread rather than passed as `onDone` directly: under
-      // exactOptionalPropertyTypes an explicit `undefined` is not the same as an absent optional
-      // prop, and DisclosureModal declares these as optional-but-defined.
-      {...(onDone === undefined ? {} : { onSaved: onDone, onDismiss: onDone })}
+      onSaved={() => {
+        setDismissed(true);
+        onDone?.();
+      }}
+      onDismiss={() => {
+        setDismissed(true);
+        onDone?.();
+      }}
     />
   );
 }
