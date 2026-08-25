@@ -81,6 +81,44 @@ const ACCOUNTS: Account[] = [
     balance: 500000.0,
     openedAt: '2024-11-20T00:00:00.000Z',
   },
+  // One savings account each for the three additional customers. Not decoration: DashboardPage
+  // filters accounts by userId and renders the list with no empty state, so a customer with none
+  // sees a "Your accounts" heading over blank space and a total of zero — which reads as a broken
+  // page rather than a new one. Their statements are legitimately empty and AccountsPage already
+  // says so.
+  {
+    id: 'ACC-SAV-02',
+    userId: 'u-customer-002',
+    type: 'savings',
+    name: 'Savings account',
+    number: '5012340000112233',
+    ifsc: 'FINS0000451',
+    branch: 'Anna Nagar, Chennai',
+    balance: 64820.4,
+    openedAt: '2026-02-11T00:00:00.000Z',
+  },
+  {
+    id: 'ACC-SAV-03',
+    userId: 'u-customer-003',
+    type: 'savings',
+    name: 'Savings account',
+    number: '5012340000445566',
+    ifsc: 'FINS0000451',
+    branch: 'Anna Nagar, Chennai',
+    balance: 131905.0,
+    openedAt: '2026-03-02T00:00:00.000Z',
+  },
+  {
+    id: 'ACC-SAV-04',
+    userId: 'u-customer-004',
+    type: 'savings',
+    name: 'Savings account',
+    number: '5012340000778899',
+    ifsc: 'FINS0000451',
+    branch: 'Anna Nagar, Chennai',
+    balance: 27340.75,
+    openedAt: '2026-04-19T00:00:00.000Z',
+  },
 ];
 
 /** Newest first, with a running balance that actually reconciles to the account total. */
