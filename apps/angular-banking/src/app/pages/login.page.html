@@ -1,0 +1,174 @@
+<!-- The split is 1.25 : 1 in the PANEL's favour, not the form's. A 1 : 1.1 split gave the form column
+     ~995px on a 1900px screen to hold a 384px form — so the widest part of the page was empty space
+     and the layout read as unfinished rather than deliberate. The panel has a headline and three
+     explainer blocks to fill width with; the form does not, and stretching inputs to 900px is worse. -->
+<div class="grid min-h-dvh lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+  <!-- BRAND PANEL. The same navy the app chrome uses, so signing in does not feel like arriving at a
+       different product than the one you land in. -->
+  <aside
+    class="from-shell-900 to-shell-950 relative flex flex-col justify-between overflow-hidden bg-gradient-to-b px-6 py-10 sm:px-10 lg:px-14 lg:py-14"
+  >
+    <!-- One soft brand glow. A single light source reads as depth; two read as a gradient mesh from a
+         template. -->
+    <div
+      aria-hidden="true"
+      class="bg-brand-500/20 pointer-events-none absolute -top-32 -right-24 size-80 rounded-full blur-3xl"
+    ></div>
+
+    <div class="relative">
+      <div class="flex items-center gap-2.5">
+        <span class="bg-brand-500 grid size-10 place-items-center rounded-xl">
+          <lucide-icon [img]="shieldIcon" class="size-5 text-white" [strokeWidth]="2" />
+        </span>
+        <span>
+          <span class="block text-sm leading-tight font-semibold text-white">FinSecure</span>
+          <span class="text-2xs block leading-tight tracking-wider text-slate-400 uppercase">
+            Banking
+          </span>
+        </span>
+      </div>
+
+      <h1
+        class="mt-10 max-w-xl text-3xl leading-tight font-semibold tracking-tight text-white sm:text-4xl"
+      >
+        Consent, asked properly.
+      </h1>
+      <p class="mt-3 max-w-lg text-sm leading-relaxed text-slate-400">
+        A working demo of Akku Consent inside a retail bank — onboarding, KYC and a privacy centre
+        reading one live policy.
+      </p>
+
+      <!-- Hidden below `lg`: on a phone this would push the form itself off the first screen, and the
+           point of the page is signing in. -->
+      <ul class="mt-10 hidden max-w-lg space-y-5 lg:block">
+        @for (highlight of highlights; track highlight.title) {
+          <li class="flex gap-3.5">
+            <span
+              class="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-white/[0.07]"
+            >
+              <lucide-icon
+                [img]="highlight.icon"
+                class="text-brand-300 size-4"
+                [strokeWidth]="1.9"
+              />
+            </span>
+            <span>
+              <span class="block text-sm font-medium text-white">{{ highlight.title }}</span>
+              <span class="mt-0.5 block text-xs leading-relaxed text-slate-400">
+                {{ highlight.body }}
+              </span>
+            </span>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <p class="text-2xs relative mt-10 hidden text-slate-500 lg:block">
+      Nothing here is real. Every account, balance and verification is fabricated and never leaves
+      this browser.
+    </p>
+  </aside>
+
+  <!-- FORM. Capped at a comfortable measure and centred in its own column, so a wide window gives the
+       extra width to the panel rather than stretching the inputs. -->
+  <main class="flex items-center justify-center px-6 py-10 sm:px-10 lg:py-14">
+    <div class="w-full max-w-md">
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold tracking-tight text-slate-900">Sign in</h2>
+        <p class="mt-1 text-sm text-slate-500">
+          Use a demo account below — no registration, no real data.
+        </p>
+      </div>
+
+      <!-- The honest disclosure, shown here only when the brand panel's version is hidden. It has to
+           appear somewhere on every viewport: it is the sentence that stops someone treating this as
+           a real bank. -->
+      <div
+        class="border-status-pending/20 bg-status-pending-soft text-status-pending mb-6 rounded-control border px-3.5 py-3 text-sm lg:hidden"
+        role="status"
+      >
+        <strong class="font-semibold">Demo application.</strong> Every account, balance, document and
+        verification here is fabricated and stored only in this browser.
+      </div>
+
+      <form class="space-y-4" (ngSubmit)="submit()">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-slate-700" for="email">
+            Email address
+          </label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autocomplete="email"
+            placeholder="you@example.com"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+            class="focus-ring border-border-subtle bg-surface w-full rounded-control border px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400"
+          />
+        </div>
+
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-slate-700" for="password">
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password"
+            placeholder="••••••••"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event)"
+            class="focus-ring border-border-subtle bg-surface w-full rounded-control border px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400"
+          />
+        </div>
+
+        @if (error()) {
+          <p role="alert" class="reveal text-sm font-medium text-rose-700">{{ error() }}</p>
+        }
+
+        <button
+          type="submit"
+          [disabled]="busy()"
+          class="btn-primary-surface focus-ring press flex min-h-11 w-full items-center justify-center rounded-control text-sm font-semibold text-white disabled:opacity-60"
+        >
+          {{ busy() ? 'Signing in…' : 'Sign in' }}
+        </button>
+      </form>
+
+      <!-- DEMO ACCOUNTS as pickable rows, not a footnote.
+           On a demo this is the primary action — nobody types the address by hand — yet it is easily
+           the quietest thing on a page like this. The whole row is the button, so the target matches
+           the size of the thing being chosen. The password is deliberately not printed: the row fills
+           it, and showing it adds nothing but noise. -->
+      <div class="mt-8">
+        <p class="text-2xs mb-2.5 font-semibold tracking-[0.12em] text-slate-400 uppercase">
+          Demo accounts
+        </p>
+        <div class="space-y-2">
+          @for (demo of demoUsers; track demo.id) {
+            <button
+              type="button"
+              (click)="fill(demo.email, demo.password)"
+              class="focus-ring press border-border-subtle bg-surface hover:border-border-strong flex w-full items-center gap-3 rounded-control border px-3.5 py-3 text-left"
+            >
+              <span
+                class="bg-brand-50 text-brand-700 grid size-9 shrink-0 place-items-center rounded-full text-xs font-bold"
+              >
+                {{ initials(demo.name) }}
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-medium text-slate-800">{{ demo.name }}</span>
+                <span class="num block truncate text-xs text-slate-500">{{ demo.email }}</span>
+              </span>
+              <span class="text-brand-600 text-2xs shrink-0 font-semibold">Use</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </main>
+</div>

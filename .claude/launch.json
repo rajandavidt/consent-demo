@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "angular-banking",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@finsecure/angular-banking", "dev", "--", "--port", "4200"],
+      "port": 4200
+    }
+  ]
+}

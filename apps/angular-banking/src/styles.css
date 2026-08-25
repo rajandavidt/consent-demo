@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+
+/* Tailwind v4 detects content from the project root, which here is the APP directory. Two sources
+   have to be named explicitly or their classes are never generated:
+
+   - `src` — this app's own components. Angular keeps its markup in `.html` files that Tailwind's
+     default heuristics do find, but naming it is cheap and survives a component written inline.
+   - the shared package — same reason the React apps name it (see apps/banking/src/index.css): a
+     class used only inside @finsecure/shared would otherwise render unstyled. */
+@source './';
+@source '../../../packages/shared/src';
+
+/* THE SAME design system the React apps use, not a copy of it. Importing the one stylesheet is what
+   keeps the Angular build visually identical to the React build — a second copy of these tokens
+   would drift the first time somebody adjusted a colour in one place. Imported AFTER tailwindcss
+   because it uses `@theme inline` and `@layer base`, both of which need Tailwind's layers to exist. */
+@import '../../../packages/shared/src/theme.css';
+
+/* Akku's consent surfaces ship their own stylesheet. This app builds its own consent components on
+   the SDK core rather than using its React ones, so the classes here are mostly unused today — but
+   `renderPreferenceCenter` from `@akku-work/consent-auth/ui` emits markup this stylesheet targets,
+   and importing at the entry means the first screen to use it is not the one that discovers it is
+   unstyled. */
+@import '@akku-work/consent-auth/styles.css';
+
+/* NO @import FOR THE FONT — it is a <link> in index.html. CSS requires every @import to precede all
+   other statements, so a font import placed after these is silently dropped; both React apps shipped
+   in system-ui for a while because of exactly that. A <link> also starts downloading sooner. */

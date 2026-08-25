@@ -8,9 +8,8 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./ui": "./src/ui/index.ts",
-    "./storage": "./src/storage/index.ts",
-    "./kyc": "./src/kyc/index.ts"
+    "./core": "./src/core.ts",
+    "./storage": "./src/storage/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
