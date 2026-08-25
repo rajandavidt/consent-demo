@@ -1,13 +1,14 @@
 // packages/shared/src/index.ts — one entry point, so an app never reaches into a subpath by hand.
-//
-// The framework-free half lives in `core.ts` and is re-exported here, so this list stays the SAME
-// public API it always was while the Angular app can import the domain layer without React. See
-// that file's header for the rule that keeps the split honest.
-export * from './core.js';
-
+export * from './storage/index.js';
+export * from './kyc/types.js';
+export * from './kyc/store.js';
 export * from './otp/useOtp.js';
 export * from './otp/OtpInput.js';
+export * from './seed.js';
+export * from './util/mask.js';
+export * from './util/validate.js';
 export * from './ui/index.js';
+export * from './auth/auth.js';
 export * from './auth/AuthProvider.js';
 export * from './consent/ConsentCentre.js';
 export * from './consent/CollectionPointConsent.js';

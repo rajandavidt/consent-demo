@@ -1,8 +1,0 @@
-{
-  "/api": {
-    "target": "https://consent-banking.vercel.app",
-    "secure": true,
-    "changeOrigin": true,
-    "logLevel": "warn"
-  }
-}

@@ -8,8 +8,7 @@
     "dev:insurance": "pnpm --filter @finsecure/insurance dev",
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
-    "lint": "pnpm -r run lint",
-    "dev:angular-insurance": "pnpm --filter @finsecure/angular-insurance dev"
+    "lint": "pnpm -r run lint"
   },
   "devDependencies": {
     "prettier": "^3.3.3",
