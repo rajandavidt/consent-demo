@@ -18,8 +18,8 @@ importers:
   apps/banking:
     dependencies:
       '@akku-work/consent-auth':
-        specifier: 0.2.0-beta.2
-        version: 0.2.0-beta.2(react@19.2.8)
+        specifier: 0.2.0-beta.3
+        version: 0.2.0-beta.3(react@19.2.8)
       '@finsecure/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -88,8 +88,8 @@ importers:
   apps/insurance:
     dependencies:
       '@akku-work/consent-auth':
-        specifier: 0.2.0-beta.2
-        version: 0.2.0-beta.2(react@19.2.8)
+        specifier: 0.2.0-beta.3
+        version: 0.2.0-beta.3(react@19.2.8)
       '@finsecure/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -158,8 +158,8 @@ importers:
   packages/shared:
     dependencies:
       '@akku-work/consent-auth':
-        specifier: 0.2.0-beta.2
-        version: 0.2.0-beta.2(react@19.2.8)
+        specifier: 0.2.0-beta.3
+        version: 0.2.0-beta.3(react@19.2.8)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -200,8 +200,8 @@ importers:
 
 packages:
 
-  '@akku-work/consent-auth@0.2.0-beta.2':
-    resolution: {integrity: sha512-Iu7R0xA+L1JFGfl1c7EOWaZMcZFi3LY9TNIJp2a/Wnacl3Y5Qdc61yUmc7M3BYvpmHZ4Z9LZGxO9yKantExZ8w==}
+  '@akku-work/consent-auth@0.2.0-beta.3':
+    resolution: {integrity: sha512-/WXcMyywQojUZw1Fxj7VIVCJdTSYKADhGRG+E/49HJZAKyUKnHT1/32sg5KQNMLsBDIuyEe+fzsWLVqqFNyulg==}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
     peerDependenciesMeta:
@@ -1986,7 +1986,7 @@ packages:
 
 snapshots:
 
-  '@akku-work/consent-auth@0.2.0-beta.2(react@19.2.8)':
+  '@akku-work/consent-auth@0.2.0-beta.3(react@19.2.8)':
     optionalDependencies:
       react: 19.2.8
 
