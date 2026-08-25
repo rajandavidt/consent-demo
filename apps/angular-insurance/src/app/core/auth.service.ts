@@ -1,4 +1,4 @@
-// apps/angular-banking/src/app/core/auth.service.ts — session state, and the KYC record hanging off it.
+// apps/angular-insurance/src/app/core/auth.service.ts — session state, and the KYC record hanging off it.
 //
 // The Angular counterpart of @finsecure/shared's AuthProvider, and deliberately NOT a port of its
 // storage logic: `getSession`, `getKyc` and the rest are imported from the same shared module the

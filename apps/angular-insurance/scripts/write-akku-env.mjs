@@ -1,4 +1,4 @@
-// apps/angular-banking/scripts/write-akku-env.mjs — turns environment variables into a TypeScript
+// apps/angular-insurance/scripts/write-akku-env.mjs — turns environment variables into a TypeScript
 // module, before `ng` runs.
 //
 // WHY THIS EXISTS. Vite substitutes `import.meta.env.VITE_*` at build time, which is how the two

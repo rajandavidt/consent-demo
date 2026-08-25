@@ -1,4 +1,4 @@
-// apps/angular-banking/src/app/core/policy-elements.service.ts — data-element LABELS, read from the
+// apps/angular-insurance/src/app/core/policy-elements.service.ts — data-element LABELS, read from the
 // published policy rather than restated here.
 //
 // WHY THIS EXISTS SEPARATELY FROM THE CONSENT SERVICE. The authenticated plane's `GET /purposes`

@@ -1,4 +1,4 @@
-// apps/angular-banking/src/app/core/subject-token.ts — asks OUR server for a signed Subject Token.
+// apps/angular-insurance/src/app/core/subject-token.ts — asks OUR server for a signed Subject Token.
 //
 // The signing happens server-side (`api/subject-token.ts`) because that is where the private key is.
 // See that file's header for the one function a real host must replace: this demo has no real

@@ -2,14 +2,14 @@
   "name": "consent-demo",
   "private": true,
   "type": "module",
-  "description": "FinSecure demo platform â€” a mock Banking app and a mock Insurance app that share one KYC record. Frontend only: every 'verification' is simulated and every record lives in localStorage.",
+  "description": "FinSecure demo platform \u00e2\u20ac\u201d a mock Banking app and a mock Insurance app that share one KYC record. Frontend only: every 'verification' is simulated and every record lives in localStorage.",
   "scripts": {
     "dev:banking": "pnpm --filter @finsecure/banking dev",
     "dev:insurance": "pnpm --filter @finsecure/insurance dev",
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "pnpm -r run lint",
-    "dev:angular": "pnpm --filter @finsecure/angular-banking dev"
+    "dev:angular-insurance": "pnpm --filter @finsecure/angular-insurance dev"
   },
   "devDependencies": {
     "prettier": "^3.3.3",

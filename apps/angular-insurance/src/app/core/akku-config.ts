@@ -1,4 +1,4 @@
-// apps/angular-banking/src/app/core/akku-config.ts — where the app points, and nothing about the policy.
+// apps/angular-insurance/src/app/core/akku-config.ts — where the app points, and nothing about the policy.
 //
 // The Angular twin of @finsecure/shared's consent/config.ts, and the same rules apply: the site key
 // is public by design (it resolves server-side to an org and a site and is never a secret), and

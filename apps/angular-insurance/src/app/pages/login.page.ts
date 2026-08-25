@@ -1,4 +1,4 @@
-// apps/angular-banking/src/app/pages/login.page.ts — sign in, with the demo credentials on screen.
+// apps/angular-insurance/src/app/pages/login.page.ts — sign in, with the demo credentials on screen.
 //
 // The credentials are printed and one-click fillable on purpose. A demo whose password lives in a
 // README fails the moment it is shown to someone who does not have the README.
@@ -14,7 +14,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { LucideAngularModule, FileCheck2, ShieldCheck, Users } from 'lucide-angular';
+import { LucideAngularModule, FileCheck2, ShieldCheck, ShieldPlus, Users } from 'lucide-angular';
 import { DEMO_USERS, login } from '@finsecure/shared/core';
 import { AuthService } from '../core/auth.service';
 
@@ -43,13 +43,13 @@ export class LoginPage {
   readonly highlights = [
     {
       icon: Users,
-      title: 'One KYC record, two products',
-      body: 'Verify once here and FinSecure Insurance already knows — nothing is asked twice.',
+      title: 'KYC already done next door',
+      body: 'Verified at FinSecure Bank? This side reads the same record — no second round of proof.',
     },
     {
       icon: ShieldCheck,
       title: 'Consent asked where data is collected',
-      body: 'Each step discloses what it will do with the detail it is about to take, before taking it.',
+      body: 'Health answers used for underwriting are asked for at the point they are needed, not buried.',
     },
     {
       icon: FileCheck2,
@@ -58,7 +58,7 @@ export class LoginPage {
     },
   ];
 
-  readonly shieldIcon = ShieldCheck;
+  readonly brandIcon = ShieldPlus;
 
   initials(name: string): string {
     return name

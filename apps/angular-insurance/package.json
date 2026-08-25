@@ -1,5 +1,5 @@
 {
-  "name": "@finsecure/angular-banking",
+  "name": "@finsecure/angular-insurance",
   "version": "0.0.0",
   "scripts": {
     "dev": "node scripts/write-akku-env.mjs && ng serve",
@@ -36,5 +36,5 @@
     "@tailwindcss/postcss": "^4.3.3",
     "tw-animate-css": "^1.4.0"
   },
-  "description": "FinSecure Banking, rebuilt in Angular. Same demo users, same KYC record and same localStorage schema as the React app (via @finsecure/shared/core) — what differs is the consent layer, which is built here on the SDK core rather than on its React bindings."
+  "description": "FinSecure Insurance, built in Angular. Deliberately a DIFFERENT framework from the banking app: both point at the same Akku site, so the demo shows one consent policy and one customer across two products written in two frameworks - which is the situation a real enterprise with a mixed front-end estate is actually in."
 }

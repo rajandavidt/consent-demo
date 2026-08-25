@@ -1,4 +1,4 @@
-// apps/angular-banking/src/app/core/auth.guard.ts — every screen behind sign-in.
+// apps/angular-insurance/src/app/core/auth.guard.ts — every screen behind sign-in.
 //
 // The `ready` check is the whole reason this is not a one-liner. `AuthService` reads localStorage in
 // its constructor, so by the time a guard runs the session IS known — but the flag is kept and

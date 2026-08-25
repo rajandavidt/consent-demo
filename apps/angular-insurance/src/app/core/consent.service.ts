@@ -1,4 +1,4 @@
-// apps/angular-banking/src/app/core/consent.service.ts — Akku's consent context for the signed-in user.
+// apps/angular-insurance/src/app/core/consent.service.ts — Akku's consent context for the signed-in user.
 //
 // This is the Angular replacement for @finsecure/shared's AkkuProvider AND for the SDK's own
 // ConsentProvider/useConsent React bindings. The SDK's CORE (`@akku-work/consent-auth`) is plain

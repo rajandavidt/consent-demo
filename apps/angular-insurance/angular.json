@@ -6,7 +6,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "angular-banking": {
+    "angular-insurance": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -54,10 +54,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "angular-banking:build:production"
+              "buildTarget": "angular-insurance:build:production"
             },
             "development": {
-              "buildTarget": "angular-banking:build:development"
+              "buildTarget": "angular-insurance:build:development"
             }
           },
           "defaultConfiguration": "development"
