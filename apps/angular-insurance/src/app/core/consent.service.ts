@@ -200,6 +200,48 @@ export class ConsentService {
   }
 
   /**
+   * One purpose's resolved state, or `undefined` if the policy does not declare it.
+   *
+   * `undefined` for an unknown key rather than a thrown error or a fabricated row: a key the policy
+   * does not carry is a host typo or a mid-deploy skew, and a surface asked to render it should show
+   * nothing rather than invent a question.
+   */
+  purpose(purposeKey: string): PurposeState | undefined {
+    return this.states()?.find((state) => state.key === purposeKey);
+  }
+
+  /**
+   * Of the purposes named, the ones that still need a surface shown.
+   *
+   * A `legal_obligation` never appears here: it is DISCLOSED, not asked. A surface that wants to show
+   * its notice reads the states and filters on the basis, which is an explicit act — rather than a
+   * notice arriving in a list called "needs a decision".
+   *
+   * An empty array while `states()` is `undefined`, so a caller cannot mistake "not read yet" for
+   * "nothing to ask". Callers check `states()` first; see the components in ../consent.
+   */
+  toAsk(purposeKeys?: string[]): PurposeState[] {
+    const states = this.states() ?? [];
+    const scoped =
+      purposeKeys === undefined
+        ? states
+        : purposeKeys
+            .map((key) => states.find((state) => state.key === key))
+            .filter((state): state is PurposeState => state !== undefined);
+    return scoped.filter((state) => state.legalBasis === 'consent' && state.needsDecision);
+  }
+
+  /**
+   * Records one purpose's answer.
+   *
+   * A thin wrapper over {@link record} rather than a second path to the API: one purpose is still a
+   * delta, so answering "marketing" cannot disturb any other decision on file.
+   */
+  async decide(purposeKey: string, granted: boolean, source: string): Promise<void> {
+    await this.record({ [purposeKey]: granted }, source);
+  }
+
+  /**
    * The purposes attached to one data element, as a signal.
    *
    * Grouped on each purpose's own `elementKey`, NEVER on a prefix parsed off the key.

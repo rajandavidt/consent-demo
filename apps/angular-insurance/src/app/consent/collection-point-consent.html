@@ -1,0 +1,110 @@
+@if (visible()) {
+  <!-- The scrim closes the surface on a click, and the panel stops the click reaching it — otherwise
+       pressing Allow inside the dialog also dismisses the dialog. -->
+  <div class="akku-scrim" (click)="dismiss()">
+    <div class="akku-scrim__inner" (click)="$event.stopPropagation()">
+      <div
+        class="akku-surface akku-surface--disclose"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="title()"
+        [attr.data-source]="source()"
+      >
+        <header class="akku-surface__header">
+          <span class="akku-eyebrow">Before you start</span>
+          <div class="akku-surface__titleline">
+            <h2 class="akku-surface__title">{{ title() }}</h2>
+          </div>
+        </header>
+
+        @if (fixed().length > 0) {
+          <section class="akku-group akku-group--fixed">
+            <h3 class="akku-group__title">Used automatically — no consent needed</h3>
+            @for (state of fixed(); track state.key) {
+              <div
+                class="akku-row"
+                [attr.data-purpose]="state.key"
+                [attr.data-basis]="state.legalBasis"
+              >
+                <div class="akku-row__text">
+                  <div class="akku-row__head">
+                    <span class="akku-row__name">{{ state.name }}</span>
+                    <akku-legal-basis-pill [basis]="state.legalBasis" />
+                  </div>
+                  @if (state.description) {
+                    <p class="akku-row__desc">{{ state.description }}</p>
+                  }
+                  <akku-reason-banner [outcome]="state.outcome" />
+                  <akku-purpose-key-meta [state]="state" />
+                </div>
+                <!-- Stated once, plainly. `necessary` is part of running the account; a legal
+                     obligation rests on the statute. Neither is a choice, so neither gets a control. -->
+                <span class="akku-row__fixed">Always on</span>
+              </div>
+            }
+          </section>
+        }
+
+        <section class="akku-group akku-group--choices">
+          <h3 class="akku-group__title">Your choices</h3>
+          @for (state of asking(); track state.key) {
+            <div class="akku-choice" [attr.data-purpose]="state.key">
+              <div class="akku-choice__text">
+                <div class="akku-row__head">
+                  <span class="akku-row__name">{{ state.name }}</span>
+                  <akku-legal-basis-pill [basis]="state.legalBasis" />
+                </div>
+                @if (state.description) {
+                  <p class="akku-row__desc">{{ state.description }}</p>
+                }
+                <akku-purpose-key-meta [state]="state" />
+              </div>
+              <!-- Two buttons rather than one toggle, and `aria-pressed` is what makes the difference
+                   legible: a toggle starts in a position, which reads as an answer already given.
+                   Neither button pressed means genuinely unanswered. -->
+              <div class="akku-choice__actions" role="group" [attr.aria-label]="state.name">
+                <button
+                  type="button"
+                  class="akku-btn akku-btn--accept"
+                  [attr.aria-pressed]="answerOf(state) === true"
+                  [disabled]="busy()"
+                  (click)="set(state.key, true)"
+                >
+                  Allow
+                </button>
+                <button
+                  type="button"
+                  class="akku-btn akku-btn--decline"
+                  [attr.aria-pressed]="answerOf(state) === false"
+                  [disabled]="busy()"
+                  (click)="set(state.key, false)"
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          }
+        </section>
+
+        <footer class="akku-surface__footer">
+          <button
+            type="button"
+            class="akku-btn akku-btn--decline"
+            [disabled]="busy()"
+            (click)="dismiss()"
+          >
+            Decide later
+          </button>
+          <button
+            type="button"
+            class="akku-btn akku-btn--accept"
+            [disabled]="busy() || answeredCount() === 0"
+            (click)="save()"
+          >
+            {{ saveLabel() }}
+          </button>
+        </footer>
+      </div>
+    </div>
+  </div>
+}

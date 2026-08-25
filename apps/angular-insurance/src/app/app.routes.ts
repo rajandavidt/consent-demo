@@ -31,6 +31,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/dashboard.page').then((m) => m.DashboardPage),
         title: 'Overview — FinSecure Insurance',
       },
+      {
+        path: 'privacy',
+        loadComponent: () => import('./pages/privacy.page').then((m) => m.PrivacyPage),
+        title: 'Privacy & consent — FinSecure Insurance',
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },

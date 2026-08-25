@@ -43,6 +43,33 @@ Without those values the app still builds and runs, and reports itself unconfigu
 surface is never what breaks a page (Rule #1). `AKKU_APP_ID` is the one most often missing; without
 it the authenticated plane cannot be used at all.
 
+### Two things must exist on the Akku site
+
+Neither is code, and both fail in ways that look like a bug in this app:
+
+1. **The dev origin must be on the site's allow-list.** `ng serve` runs on `http://localhost:4200`;
+   an origin the site does not carry is refused at the CORS preflight, and the panel reports
+   "your choices could not be loaded" with the real reason only in the browser console.
+2. **An application key must be registered** (console -> site -> App keys). The authenticated plane
+   verifies the token's signature against the PUBLIC key held there; the private half stays in this
+   app's own `AKKU_APP_PRIVATE_KEY` and Akku never sees it. With no registered key every read fails
+   with `APPLICATION_REQUIRED`.
+
+The console does not generate the keypair — it only accepts a public key. Generate an Ed25519 pair
+yourself, register the public half, and keep the private half:
+
+```bash
+openssl genpkey -algorithm ed25519 -out app-private.pem
+openssl pkey -in app-private.pem -pubout -out app-public.pem
+```
+
+### The dev proxy, and why it exists
+
+`proxy.conf.json` forwards `/api/*` to the deployed banking app. `api/subject-token.ts` is a Vercel
+function, and `ng serve` does not run Vercel functions — so without the proxy the SDK's first token
+request 404s locally and nothing else can be verified. In a real deployment the function is served
+from this app's own project and the proxy plays no part.
+
 ### Why there is a generated file
 
 Vite substitutes `import.meta.env.VITE_*` at build time, which is how the React apps learn which Akku
